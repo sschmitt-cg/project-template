@@ -43,6 +43,9 @@ the wrong thing.
 - Favor naming clarity over inline documentation.
 - Do not add comments or type annotations to code you didn't change.
 
+### Shell commands
+Run each shell command as a separate Bash call. Do not chain commands with `&&`, `||`, or `|` unless the compound form is the only practical way to achieve the result (e.g., piping to `head` to cap verbose output). This keeps individual commands auto-approvable without permission prompts.
+
 ### Scope discipline
 - Only modify files relevant to the current task.
 - Do not refactor surrounding code opportunistically.

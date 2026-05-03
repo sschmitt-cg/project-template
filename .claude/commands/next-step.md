@@ -94,9 +94,6 @@ The implementation agent should:
    established
 5. **Do not open a PR** — report back with the branch name and a summary of
    all changed files when done
-6. **Shell commands**: run each command as a separate Bash call — never chain
-   with `&&`, `||`, or `|`. This applies to validation gates: run
-   `npm run typecheck`, `npm run lint`, and `npm test` as three separate calls.
 
 ---
 
@@ -108,8 +105,7 @@ The implementation agent should:
 The review sub-agent should read `docs/architecture.md` and every changed file,
 then check for violations of all constraints defined in `CLAUDE.md` and
 `docs/architecture.md`. It derives its checklist from those files — the
-constraints are fully specified there. Run each shell command as a separate
-Bash call — never chain with `&&`, `||`, or `|`.
+constraints are fully specified there.
 
 The review sub-agent reports findings. For each finding, apply these rules:
 
@@ -182,7 +178,3 @@ After each autonomous fix: record the failure and fix in one line, commit, push,
 - The `.claude/` directory is version-controlled in this repo (except
   `settings.json` and `settings.local.json`, which are gitignored). Changes to
   commands should be committed on a feature branch like any other code change.
-- Shell commands: use one Bash call per action — no `||`, `&&`, or `|` chains
-  in diagnostic or discovery commands. Each command runs individually so
-  auto-approval can work. This applies to validation gates too: run
-  `npm run typecheck`, `npm run lint`, and `npm test` as separate calls.
