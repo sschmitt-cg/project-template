@@ -32,7 +32,8 @@
       "Bash(pnpm approve-builds *)",
       "Bash(pnpm typecheck *)",
       "Bash(pnpm lint *)",
-      "Bash(claude mcp *)"
+      "Bash(claude mcp list)",
+      "Bash(claude mcp get *)"
     ]
   }
 }
