@@ -28,6 +28,37 @@ Read the current project's `.claude/settings.json`. Merge the `permissions.allow
 
 If `.claude/settings.json` does not exist in the current project, create it with only the template's contents.
 
+### 4. Technology-specific allow entries
+
+After merging the standard allow list, detect what technologies the project uses and add the corresponding entries to `permissions.allow` if not already present.
+
+**Supabase** — detected if any of these are true:
+- A `supabase/` directory exists
+- `package.json` contains `@supabase/supabase-js` or `@supabase/ssr`
+- `.env` or `.env.local` contains a `SUPABASE_` variable
+
+Add:
+```json
+"mcp__supabase__get_project_url",
+"mcp__supabase__get_publishable_keys",
+"Bash(npx supabase *)"
+```
+
+**Expo** — detected if `package.json` contains `"expo"` as a dependency:
+
+Add:
+```json
+"Bash(npx expo *)",
+"Bash(expo *)"
+```
+
+**Prisma** — detected if `package.json` contains `"prisma"` or `"@prisma/client"`:
+
+Add:
+```json
+"Bash(npx prisma *)"
+```
+
 ## What NOT to sync
 
 Do not touch:
