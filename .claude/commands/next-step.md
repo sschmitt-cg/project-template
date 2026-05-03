@@ -94,18 +94,22 @@ The implementation agent should:
    established
 5. **Do not open a PR** — report back with the branch name and a summary of
    all changed files when done
+6. **Shell commands**: run each command as a separate Bash call — never chain
+   with `&&`, `||`, or `|`. This applies to validation gates: run
+   `npm run typecheck`, `npm run lint`, and `npm test` as three separate calls.
 
 ---
 
 ## Step 6 — Review sub-agent (up to 5 rounds)
 
-Spawn a focused review sub-agent. Give it:
-- The branch name and list of changed files
+**Round 1:** Spawn a focused review sub-agent. Give it:
+- The branch name and full list of changed files
 
 The review sub-agent should read `docs/architecture.md` and every changed file,
 then check for violations of all constraints defined in `CLAUDE.md` and
 `docs/architecture.md`. It derives its checklist from those files — the
-constraints are fully specified there.
+constraints are fully specified there. Run each shell command as a separate
+Bash call — never chain with `&&`, `||`, or `|`.
 
 The review sub-agent reports findings. For each finding, apply these rules:
 
@@ -118,9 +122,20 @@ The review sub-agent reports findings. For each finding, apply these rules:
 - A finding that requires a design decision to resolve
 - Any situation where you are not confident what the correct fix is
 
-After each autonomous fix round: re-run the review sub-agent. Repeat up to
-**5 rounds total**. If issues remain after 5 rounds, report to the user with a
-summary of what is unresolved.
+**Rounds 2–5 (follow-up reviews):** After each autonomous fix round, spawn a
+new review sub-agent scoped only to what changed. Give it:
+- The exact files modified in the most recent fix (not the full original file list)
+- A one-line summary of each finding already resolved in prior rounds, so they
+  are not re-flagged (e.g. "Round 1: removed what-comments in X — cleared")
+- Any files that depend on the changed files and could be affected
+
+The follow-up reviewer reads only those files and checks only for: (a) new
+violations introduced by the fix, and (b) any unresolved findings carried
+forward. It does not re-read the full diff or re-check files that were not
+touched.
+
+After **5 rounds total**, if issues remain, report to the user with a summary
+of what is unresolved.
 
 ---
 
