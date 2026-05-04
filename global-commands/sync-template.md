@@ -28,7 +28,17 @@ Read the current project's `.claude/settings.json`. Merge the `permissions.allow
 
 If `.claude/settings.json` does not exist in the current project, create it with only the template's contents.
 
-### 4. Technology-specific allow entries
+### 4. .claude/settings.json — merge hooks
+
+Fetch the template's `hooks` section (already fetched above). For each entry in `hooks.PreToolUse`:
+
+- Check whether the project's `.claude/settings.json` already contains a `PreToolUse` hook with the same `matcher` value AND a `hooks[].command` that is identical (string equality) to the template's command.
+- If no matching entry exists, append the template's entry to the project's `hooks.PreToolUse` array (creating the array if absent).
+- Preserve all existing project-specific hooks — never remove or modify them.
+
+Write the merged result back to `.claude/settings.json`.
+
+### 5. Technology-specific allow entries
 
 After merging the standard allow list, detect what technologies the project uses and add the corresponding entries to `permissions.allow` if not already present.
 
@@ -59,13 +69,30 @@ Add:
 "Bash(npx prisma *)"
 ```
 
+### 6. Project-path-specific entries
+
+Determine the absolute path of the current project directory (e.g. `/Users/scottschmitt/Documents/Code Projects/inkwell`). Add the following path-scoped entries to `permissions.allow` if not already present, substituting the real path for `<PATH>`:
+
+```json
+"Bash(cd \"<PATH>*\" && npm run *)",
+"Bash(cd \"<PATH>*\" && npm test *)",
+"Bash(cd \"<PATH>*\" && npx tsc *)",
+"Bash(cd \"<PATH>*\" && pnpm *)",
+"Bash(cd \"<PATH>*\" && git *)",
+"Bash(cd \"<PATH>*\" && gh *)",
+"Bash(mkdir -p \"<PATH>/*\")",
+"Bash(rm \"<PATH>/.git/index.lock\")"
+```
+
+These cover monorepo `cd`-prefixed commands and common path-scoped operations that cannot be pre-approved by the generic allow list. Only add them once — de-duplicate before writing.
+
 ## What NOT to sync
 
 Do not touch:
 - `docs/project-vision.md`
 - `docs/architecture.md`
 - `BACKLOG.md`
-- `.claude/settings.json` keys other than `permissions.allow`
+- `.claude/settings.json` keys other than `permissions.allow` and `hooks.PreToolUse`
 - `.gitignore`
 
 ## After syncing
