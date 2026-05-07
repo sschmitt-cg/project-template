@@ -68,11 +68,14 @@ the wrong thing.
 ### Shell commands
 Run each shell command as a separate Bash call. Do not chain commands with `&&`, `||`, or `|` unless the compound form is the only practical way to achieve the result.
 
-**Acceptable pipes** — these are the only cases where `|` is justified:
+**Acceptable pipes** — these are the only cases where `|` or `||` is justified:
 - `cmd | head -N` / `cmd | tail -N` — capping verbose output
 - `cmd | grep <pattern>` — filtering output from a read-only source command
 - `cmd | jq <expr>` — transforming structured output
 - `cmd | base64 -d` — decoding (e.g. `gh api` content fields)
+- `read-only-cmd 2>/dev/null || echo "fallback"` — existence/probe checks where the
+  source is a read-only command (`cat`, `ls`, `lsof`, `test`, etc.). Never use this
+  form with a mutating source — `rm … || echo` is not acceptable.
 
 **Never use `cd <path> && <command>` as a single call.** This is the most common
 violation. `cd` persists between Bash calls — always issue it as its own call first:
