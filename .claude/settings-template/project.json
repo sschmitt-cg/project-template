@@ -1,5 +1,9 @@
 {
   "permissions": {
-    "allow": []
+    "allow": [
+      "Bash(ls \"{{PROJECT_PATH}}/**\")",
+      "Bash(find \"{{PROJECT_PATH}}\" *)",
+      "Bash(mkdir -p \"{{PROJECT_PATH}}/**\")"
+    ]
   }
 }
