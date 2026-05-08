@@ -21,12 +21,6 @@ constraints, and current work status.
 
 ---
 
-## First-time setup
-
-If this repo was just created from the template, run the global command `/project-setup` once. It adds project-path-specific entries to `.claude/settings.json` and prompts for anything else project-specific.
-
----
-
 ## Behavior rules
 
 ### Firm document protection

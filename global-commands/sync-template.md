@@ -1,4 +1,4 @@
-Pull the latest shared files from the project template repo (sschmitt-cg/project-template) into the current project. Syncs universal rules and the next-step command without touching project-specific content.
+Pull the latest shared files from the project template repo (sschmitt-cg/project-template) into the current project. Syncs universal rules, the next-step command, and rebuilds settings.json from the template files.
 
 ## Files to sync
 
@@ -14,77 +14,83 @@ Fetch and overwrite the local copy:
 gh api repos/sschmitt-cg/project-template/contents/.claude/commands/next-step.md --jq '.content' | base64 -d
 ```
 
-### 3. .claude/settings.json — merge, do not overwrite
+### 3. One-time stub files
 
-Fetch the template's settings.json:
+These files should exist in every project but contain project-specific content — create them only if absent; never overwrite.
+
+**INBOX.md** — if the file does not exist, fetch and write the template version:
 ```
-gh api repos/sschmitt-cg/project-template/contents/.claude/settings.json --jq '.content' | base64 -d
+gh api repos/sschmitt-cg/project-template/contents/INBOX.md --jq '.content' | base64 -d
 ```
 
-Read the current project's `.claude/settings.json`. Merge the `permissions.allow` arrays:
-- Add any entries from the template that are not already present
-- Preserve all existing project-specific entries (path-based `mkdir`, `ls`, `find`, etc.)
-- Write the merged result back to `.claude/settings.json`
+**SCRATCH.md** — if the file does not exist, fetch and write the template version:
+```
+gh api repos/sschmitt-cg/project-template/contents/SCRATCH.md --jq '.content' | base64 -d
+```
 
-If `.claude/settings.json` does not exist in the current project, create it with only the template's contents.
+### 4. .claude/settings.json — rebuild from template files
 
-### 4. .claude/settings.json — merge hooks
+`settings.json` is gitignored and never committed. This step is the authoritative source for what goes in it.
 
-Fetch the template's `hooks` section (already fetched above). For each entry in `hooks.PreToolUse`:
+#### 4a. Determine the project path
+Run `git rev-parse --show-toplevel` and store the result as PROJECT_PATH.
 
-- Check whether the project's `.claude/settings.json` already contains a `PreToolUse` hook with the same `matcher` value AND a `hooks[].command` that is identical (string equality) to the template's command.
-- If no matching entry exists, append the template's entry to the project's `hooks.PreToolUse` array (creating the array if absent).
-- Preserve all existing project-specific hooks — never remove or modify them.
+#### 4b. Fetch the template files
+Fetch each of the following from the template repo:
+```
+gh api repos/sschmitt-cg/project-template/contents/.claude/settings-template/universal.json --jq '.content' | base64 -d
+gh api repos/sschmitt-cg/project-template/contents/.claude/settings-template/project.json --jq '.content' | base64 -d
+gh api repos/sschmitt-cg/project-template/contents/.claude/settings-template/stacks/python.json --jq '.content' | base64 -d
+gh api repos/sschmitt-cg/project-template/contents/.claude/settings-template/stacks/expo.json --jq '.content' | base64 -d
+gh api repos/sschmitt-cg/project-template/contents/.claude/settings-template/stacks/supabase.json --jq '.content' | base64 -d
+gh api repos/sschmitt-cg/project-template/contents/.claude/settings-template/stacks/prisma.json --jq '.content' | base64 -d
+```
 
-Write the merged result back to `.claude/settings.json`.
+#### 4c. Substitute placeholders
+In project.json and all stack files, replace every occurrence of `{{PROJECT_PATH}}` with the actual PROJECT_PATH value before reading any allow entries from them.
 
-### 5. Technology-specific allow entries
+#### 4d. Detect applicable stacks
+Check each stack's `detection` conditions against the project directory:
 
-After merging the standard allow list, detect what technologies the project uses and add the corresponding entries to `permissions.allow` if not already present.
+**python** — apply if any of these are true:
+- `venv/` directory exists
+- `.venv/` directory exists
+- `pyproject.toml` exists
+- `requirements.txt` exists
+- `setup.py` exists
 
-**Supabase** — detected if any of these are true:
-- A `supabase/` directory exists
+**expo** — apply if `package.json` contains `"expo"` as a dependency key
+
+**supabase** — apply if any of these are true:
+- `supabase/` directory exists
 - `package.json` contains `@supabase/supabase-js` or `@supabase/ssr`
 - `.env` or `.env.local` contains a `SUPABASE_` variable
 
-Add:
-```json
-"mcp__supabase__get_project_url",
-"mcp__supabase__get_publishable_keys",
-"Bash(npx supabase *)"
-```
+**prisma** — apply if `package.json` contains `"prisma"` or `"@prisma/client"`
 
-**Expo** — detected if `package.json` contains `"expo"` as a dependency:
+#### 4e. Clean up the existing settings.json (if it exists)
+Read the current `permissions.allow` array. Remove any entry that matches either of these conditions:
+1. Contains `&&` — session-approved compound command violations
+2. Contains an absolute path starting with `/Users/` where that path does NOT begin with PROJECT_PATH — stale entries scoped to a different project or user directory
 
-Add:
-```json
-"Bash(npx expo *)",
-"Bash(expo *)"
-```
+Keep all remaining entries.
 
-**Prisma** — detected if `package.json` contains `"prisma"` or `"@prisma/client"`:
+#### 4f. Compose the final allow list
+Collect `permissions.allow` entries from:
+- universal.json
+- project.json (after placeholder substitution)
+- Each detected stack file (after placeholder substitution)
+- The surviving entries from the cleanup in 4e
 
-Add:
-```json
-"Bash(npx prisma *)"
-```
+Deduplicate, preserving order (universal first, then project, then stacks, then surviving existing).
 
-### 6. Project-path-specific entries
+#### 4g. Write settings.json
+Build the final settings.json as follows:
+- Start with the structure from universal.json (this provides the `hooks` and top-level shape)
+- Set `permissions.allow` to the composed list from 4f
+- If the existing settings.json has keys other than `permissions` and `hooks` (e.g., `additionalDirectories`), preserve them
 
-Determine the absolute path of the current project directory (e.g. `/Users/scottschmitt/Documents/Code Projects/inkwell`). Add the following path-scoped entries to `permissions.allow` if not already present, substituting the real path for `<PATH>`:
-
-```json
-"Bash(cd \"<PATH>*\" && npm run *)",
-"Bash(cd \"<PATH>*\" && npm test *)",
-"Bash(cd \"<PATH>*\" && npx tsc *)",
-"Bash(cd \"<PATH>*\" && pnpm *)",
-"Bash(cd \"<PATH>*\" && git *)",
-"Bash(cd \"<PATH>*\" && gh *)",
-"Bash(mkdir -p \"<PATH>/*\")",
-"Bash(rm \"<PATH>/.git/index.lock\")"
-```
-
-These cover monorepo `cd`-prefixed commands and common path-scoped operations that cannot be pre-approved by the generic allow list. Only add them once — de-duplicate before writing.
+Write the result to `.claude/settings.json`.
 
 ## What NOT to sync
 
@@ -92,8 +98,10 @@ Do not touch:
 - `docs/project-vision.md`
 - `docs/architecture.md`
 - `BACKLOG.md`
-- `.claude/settings.json` keys other than `permissions.allow` and `hooks.PreToolUse`
+- `INBOX.md` (if it already exists — working surface, project-specific)
+- `SCRATCH.md` (if it already exists — working surface, project-specific)
 - `.gitignore`
+- Any key in settings.json other than `permissions.allow` and `hooks`
 
 ## After syncing
 

@@ -1,5 +1,15 @@
 {
   "permissions": {
-    "allow": []
+    "allow": [
+      "Bash(ls \"{{PROJECT_PATH}}/**\")",
+      "Bash(find \"{{PROJECT_PATH}}\" *)",
+      "Bash(mkdir -p \"{{PROJECT_PATH}}/**\")",
+      "Bash(git -C \"{{PROJECT_PATH}}\" add *)",
+      "Bash(git -C \"{{PROJECT_PATH}}\" commit *)",
+      "Bash(git -C \"{{PROJECT_PATH}}\" push *)",
+      "Bash(git -C \"{{PROJECT_PATH}}\" checkout *)",
+      "Bash(git -C \"{{PROJECT_PATH}}\" pull *)",
+      "Bash(git -C \"{{PROJECT_PATH}}\" stash *)"
+    ]
   }
 }
