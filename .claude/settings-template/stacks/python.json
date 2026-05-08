@@ -1,0 +1,13 @@
+{
+  "detection": {
+    "description": "Python project with virtualenv",
+    "indicators": ["venv/", "pyproject.toml", "requirements.txt", "setup.py"]
+  },
+  "permissions": {
+    "allow": [
+      "Bash({{PROJECT_PATH}}/venv/bin/ruff *)",
+      "Bash({{PROJECT_PATH}}/venv/bin/mypy *)",
+      "Bash({{PROJECT_PATH}}/venv/bin/pytest *)"
+    ]
+  }
+}

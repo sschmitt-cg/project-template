@@ -1,0 +1,11 @@
+{
+  "detection": {
+    "description": "Prisma ORM project",
+    "packageJson": ["prisma", "@prisma/client"]
+  },
+  "permissions": {
+    "allow": [
+      "Bash(npx prisma *)"
+    ]
+  }
+}
