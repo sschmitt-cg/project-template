@@ -1,1 +1,0 @@
-**ARCHIVED** — The entries this command added (`ls`, `find`, `mkdir -p` scoped to the project path) are now included in `.claude/settings-template/project.json` and applied automatically by `/sync-template`. This command is no longer needed and should not be deployed.
