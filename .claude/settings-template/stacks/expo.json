@@ -1,0 +1,12 @@
+{
+  "detection": {
+    "description": "Expo / React Native project",
+    "packageJson": ["expo"]
+  },
+  "permissions": {
+    "allow": [
+      "Bash(npx expo *)",
+      "Bash(expo *)"
+    ]
+  }
+}
