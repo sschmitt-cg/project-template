@@ -27,6 +27,7 @@
       "Bash(find * | grep *)",
       "Bash(find * | head *)",
       "Bash(cat * || echo *)",
+      "Bash(ls *)",
       "Bash(ls * || echo *)",
       "Bash(lsof * || echo *)",
       "Bash(gh auth *)",
