@@ -33,6 +33,10 @@ Check these sources in priority order, **stopping as soon as one yields a clear 
    to count commits since that audit. Treat as immediately due if `last completed`
    is "never"; treat as high priority if more than 20 commits or more than 28 days
    have elapsed since the last audit.
+
+   If `BACKLOG.md` has no `Maintenance` section or no security audit item, include
+   adding one as a secondary note in the Step 3 proposal — mention it alongside the
+   primary task and give the user the option to decline. Only add it if they agree.
 4. **Generate options** — only if no open issues and no clear backlog item.
    Read `docs/project-vision.md` now, then generate exactly **3 options**:
    - An unstarted or deprioritized BACKLOG item worth revisiting `[BACKLOG]`
