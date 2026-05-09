@@ -6,8 +6,8 @@ command, the project will have a vision doc, architecture doc, and backlog; opti
 a GitHub repo will be created and cloned locally; the folder will be scaffolded with
 all standard files; and the project will be registered in `PROJECTS.md` if applicable.
 
-**Default project location:** `/Users/scottschmitt/Documents/Code Projects`
-**Template source:** `/Users/scottschmitt/Documents/Code Projects/project-template`
+**Default project location:** `/Users/scottschmitt/Documents/code-projects`
+**Template source:** `/Users/scottschmitt/Documents/code-projects/project-template`
 **Project registry:** `/Users/scottschmitt/Documents/Claude/Projects/Project Planning and Process/PROJECTS.md`
 
 Work conversationally. Do not present all questions as a list — ask a few at a time,
@@ -226,7 +226,7 @@ Check whether `CLAUDE.md` exists in the repo root:
   only if they confirm.
 - If it **does not exist**, ask: "There's no CLAUDE.md in this repo — do you want to
   copy in the standard one from the project template?" Copy it if they confirm. Source:
-  `/Users/scottschmitt/Documents/Code Projects/project-template/CLAUDE.md`. If that
+  `/Users/scottschmitt/Documents/code-projects/project-template/CLAUDE.md`. If that
   file is not found, fall back to:
   `/Users/scottschmitt/Documents/Claude/Projects/Project Planning and Process/templates/CLAUDE.md`
   and warn the user that the project-template folder may not be set up.
@@ -261,7 +261,7 @@ commands.
 **Step 1 — Confirm repo settings**
 Ask:
 - Should the GitHub repo be public or private? (default: private)
-- Confirm the local parent directory. Default is `/Users/scottschmitt/Documents/Code Projects`.
+- Confirm the local parent directory. Default is `/Users/scottschmitt/Documents/code-projects`.
   Only ask if the user has indicated they want a different location.
 
 **Step 2 — Create the GitHub repo**
@@ -273,7 +273,7 @@ hyphenated as the repo name (e.g., "My Cool App" → `my-cool-app`).
 
 **Step 3 — Clone the repo locally**
 ```
-git clone git@github.com:<username>/<project-name>.git /Users/scottschmitt/Documents/Code Projects/<project-name>
+git clone git@github.com:<username>/<project-name>.git /Users/scottschmitt/Documents/code-projects/<project-name>
 ```
 
 **Step 4 — Scaffold the folder structure**
@@ -305,7 +305,7 @@ Clear freely.
 **Step 5 — CLAUDE.md**
 Copy the standard `CLAUDE.md` from the project template into the root of the new repo
 unless the user explicitly says they don't want it. Source:
-`/Users/scottschmitt/Documents/Code Projects/project-template/CLAUDE.md`
+`/Users/scottschmitt/Documents/code-projects/project-template/CLAUDE.md`
 
 If that file is not found, fall back to:
 `/Users/scottschmitt/Documents/Claude/Projects/Project Planning and Process/templates/CLAUDE.md`
