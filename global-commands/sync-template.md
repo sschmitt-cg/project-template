@@ -53,9 +53,9 @@ In project.json and all stack files, replace every occurrence of `{{PROJECT_PATH
 
 Also compute `PROJECT_PATH_ESCAPED` by replacing every space in PROJECT_PATH with `\ ` (backslash-space). For example, if PROJECT_PATH is `/Users/scott/Documents/Code Projects/myapp`, then PROJECT_PATH_ESCAPED is `/Users/scott/Documents/Code\ Projects/myapp`.
 
-For each `Bash(...)` allow entry in the substituted project.json and stack files that contains a **quoted** PROJECT_PATH (e.g., `Bash(cmd "PROJECT_PATH/...")`), generate a parallel escaped-path entry:
-- Remove the double-quotes that surround the PROJECT_PATH portion
-- Replace the PROJECT_PATH portion with PROJECT_PATH_ESCAPED
+For each `Bash(...)` allow entry in the substituted project.json and stack files that contains a **quoted string beginning with PROJECT_PATH** (e.g., `Bash(cmd "PROJECT_PATH/...")`, `Bash("PROJECT_PATH/bin/tool" *)`), generate a parallel escaped-path entry:
+- Remove the double-quotes that surround the quoted segment containing PROJECT_PATH
+- Replace the PROJECT_PATH portion within that segment with PROJECT_PATH_ESCAPED
 
 These parallel entries are collected alongside the originals in step 4f. Skip this for `Read(...)` entries — the Read tool receives the raw file path directly, not a shell string, so no escaping is needed.
 
@@ -66,6 +66,8 @@ Examples (PROJECT_PATH = `/Users/scott/Code Projects/myapp`):
 | `Bash(ls "/Users/scott/Code Projects/myapp/**")` | `Bash(ls /Users/scott/Code\ Projects/myapp/**)` |
 | `Bash(git -C "/Users/scott/Code Projects/myapp" add *)` | `Bash(git -C /Users/scott/Code\ Projects/myapp add *)` |
 | `Bash(cat "/Users/scott/Code Projects/myapp/**")` | `Bash(cat /Users/scott/Code\ Projects/myapp/**)` |
+| `Bash("/Users/scott/Code Projects/myapp/venv/bin/python" *)` | `Bash(/Users/scott/Code\ Projects/myapp/venv/bin/python *)` |
+| `Bash(cd "/Users/scott/Code Projects/myapp")` | `Bash(cd /Users/scott/Code\ Projects/myapp)` |
 
 #### 4d. Detect applicable stacks
 Check each stack's `detection` conditions against the project directory:

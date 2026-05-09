@@ -18,6 +18,9 @@
       "Bash(git -C \"{{PROJECT_PATH}}\" remote *)",
       "Bash(git -C \"{{PROJECT_PATH}}\" stash *)",
       "Bash(cat \"{{PROJECT_PATH}}/**\")",
+      "Bash(cd \"{{PROJECT_PATH}}\")",
+      "Bash(cd \"{{PROJECT_PATH}}/**\")",
+      "Bash(\"{{PROJECT_PATH}}/node_modules/.bin/*\" *)",
       "Read({{PROJECT_PATH}}/**)"
     ]
   }
