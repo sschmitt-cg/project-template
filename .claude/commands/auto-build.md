@@ -126,24 +126,62 @@ These are the only commands that may operate outside the project directory
 (e.g., `npm install -g`, `brew install`, database setup). All subsequent
 commands are scoped to the project.
 
-### 2b. Write `.claude/settings.local.json`
+### 2b. Generate `.claude/settings.local.json`
 
-Write the following to expand sub-agent permissions for the duration of the build:
+Inspect the project to determine what commands the build will need, then write a
+tailored allow list. Check each of the following:
 
-```json
-{
-  "permissions": {
-    "allow": [
-      "Bash(gh pr create *)",
-      "Bash(gh pr merge *)",
-      "Bash(npm install *)",
-      "Bash(npm run *)",
-      "Bash(npx *)",
-      "Bash(pip install *)",
-      "Bash(pip3 install *)"
-    ]
-  }
-}
+- **Package manager**: presence of `pnpm-lock.yaml` or `pnpm-workspace.yaml` → pnpm;
+  else `package.json` → npm. Read `package.json` scripts to confirm the exact test,
+  lint, and typecheck command names.
+- **Python stack**: presence of `requirements.txt`, `pyproject.toml`, or `setup.py`.
+- **Virtual environment**: whether `.venv/` or `venv/` exists (check both).
+
+Build the allow list from these layers and write it to `.claude/settings.local.json`:
+
+**Always include** — universal git, filesystem, and gh operations:
+```
+"Bash(ls *)", "Bash(find *)", "Bash(cat *)",
+"Bash(git -C * status)", "Bash(git -C * add *)", "Bash(git -C * commit *)",
+"Bash(git -C * push *)", "Bash(git -C * pull)", "Bash(git -C * pull *)",
+"Bash(git -C * checkout *)", "Bash(git -C * branch *)", "Bash(git -C * diff *)",
+"Bash(git -C * log *)", "Bash(git -C * stash *)", "Bash(git -C * show *)",
+"Bash(git -C * remote *)",
+"Bash(gh pr create *)", "Bash(gh pr merge *)", "Bash(gh pr view *)",
+"Bash(gh pr list *)", "Bash(gh pr checks *)", "Bash(gh run *)", "Bash(gh issue *)"
+```
+
+**npm project**: also add
+```
+"Bash(npm install *)", "Bash(npm run *)", "Bash(npm test *)",
+"Bash(npm audit *)", "Bash(npx tsc *)", "Bash(npx eslint *)", "Bash(npx prettier *)", "Bash(npx create-*)"
+```
+
+**pnpm project**: also add
+```
+"Bash(pnpm install *)", "Bash(pnpm add *)", "Bash(pnpm run *)",
+"Bash(pnpm test *)", "Bash(pnpm exec *)", "Bash(npx tsc *)", "Bash(npx eslint *)", "Bash(npx prettier *)", "Bash(npx create-*)"
+```
+
+**Python project**: also add
+```
+"Bash(python -m pytest *)", "Bash(python3 -m pytest *)",
+"Bash(python3 -m mypy *)", "Bash(python3 -m ruff *)",
+"Bash(pip install *)", "Bash(pip3 install *)"
+```
+
+**Python with `.venv/`**: also add
+```
+"Bash(./.venv/bin/python *)", "Bash(./.venv/bin/python3 *)",
+"Bash(./.venv/bin/pip *)", "Bash(./.venv/bin/pytest *)",
+"Bash(./.venv/bin/mypy *)", "Bash(./.venv/bin/ruff *)"
+```
+
+**Python with `venv/`**: also add
+```
+"Bash(./venv/bin/python *)", "Bash(./venv/bin/python3 *)",
+"Bash(./venv/bin/pip *)", "Bash(./venv/bin/pytest *)",
+"Bash(./venv/bin/mypy *)", "Bash(./venv/bin/ruff *)"
 ```
 
 ### 2c. Initialize tracking files
@@ -201,10 +239,17 @@ Open questions: [none, or any item-specific questions to resolve]
 - Relevant non-obvious files (entry points, type definitions, config)
 
 The implementation sub-agent must:
-1. Read `docs/architecture.md` and `docs/project-vision.md` before writing code
-2. Run validation gates before and after all changes
-3. Update `BACKLOG.md` to mark the item complete
-4. **Do not open a PR** — return only: branch name, changed file list, 3-sentence summary
+1. **As its absolute first action**, write `.claude/settings.local.json` to its
+   current working directory. The orchestrator must supply the **literal JSON
+   content** (not a description of it) in the sub-agent's handoff prompt, copied
+   verbatim from what was written in Phase 2b. This is required because the
+   sub-agent may run in a git worktree that does not inherit the orchestrator's
+   project settings, and passing literal content prevents the sub-agent from
+   reconstructing a different (potentially more permissive) allow list.
+2. Read `docs/architecture.md` and `docs/project-vision.md` before writing code
+3. Run validation gates before and after all changes
+4. Update `BACKLOG.md` to mark the item complete
+5. **Do not open a PR** — return only: branch name, changed file list, 3-sentence summary
 
 **3c. Spawn the review sub-agent** (per Step 6 of `/next-step`).
 
