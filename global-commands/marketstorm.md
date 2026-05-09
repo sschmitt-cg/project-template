@@ -78,7 +78,7 @@ For each discovered competitor, spawn one subagent. **All subagents must be laun
 
 ## Step 3 — Element consolidation
 
-A consolidation agent receives structured summaries of all per-competitor outputs. **Pass structured summaries — not full prose outputs.** For each competitor provide:
+This step runs inline — no subagent needed. The main agent consolidates directly from the Step 2 return blocks. For each competitor, extract:
 - Product name
 - Overlap elements (list)
 - Gap elements (list)
@@ -93,7 +93,7 @@ The consolidation agent's job: merge duplicates and near-duplicates into single 
 
 Aim for 20–40 elements. If the raw list exceeds 50, merge the most closely related items — prefer fewer, more meaningful elements over an exhaustive but noisy list.
 
-Save this matrix to `marketstorm-matrix.md` in the project root before proceeding to Step 4.
+Save this matrix to `docs/marketstorm-matrix.md` (create `docs/` if it doesn't exist) before proceeding to Step 4.
 
 ---
 
@@ -170,7 +170,7 @@ Note any where user satisfaction with existing solutions is low — those remain
 Real demand that the market is currently failing to satisfy.]
 
 ### Adjacent Market Opportunities
-[The 3–5 adjacent markets from Step 6: target user, mechanism, unmet need, opportunity signal]
+[The 3–5 adjacent markets from Step 5: target user, mechanism, unmet need, opportunity signal]
 
 ### Strategic Recommendations
 [3–5 concrete takeaways: what to prioritize, what to avoid, what is table stakes,
@@ -180,7 +180,7 @@ and what to watch as the market evolves]
 [Table: Competitor | Category | URL]
 ```
 
-Save the complete report to `marketstorm-results.md` in the project root (or current working directory if no project root is identifiable).
+Save the complete report to `docs/marketstorm-results.md` (create `docs/` if it doesn't exist; fall back to the current working directory if no project root is identifiable).
 
 ---
 

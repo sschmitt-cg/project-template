@@ -7,6 +7,8 @@ Run each separately from the repo root:
 ```
 cp global-commands/sync-template.md ~/.claude/commands/sync-template.md
 cp global-commands/launch-session.md ~/.claude/commands/launch-session.md
+cp global-commands/marketstorm.md ~/.claude/commands/marketstorm.md
+cp global-commands/namestorm.md ~/.claude/commands/namestorm.md
 ```
 
 ## Notes

@@ -12,7 +12,7 @@ If the user provided arguments (`$ARGUMENTS`), treat them as:
 
 If no arguments were provided, search the current project for context files (`project-vision.md`, `docs/project-vision.md`, `BACKLOG.md`, `CLAUDE.md`). Read what you find.
 
-**Before generating anything:** ask whether the user would like to run `/marketstorm` first. A current competitive analysis — particularly the landscape overview and any suite or companion product concepts it surfaces — gives the naming process meaningfully richer context. If the user says yes, run the full Marketstorm pipeline first, then return here with those findings loaded as context for Step 0.
+**Before generating anything:** check for `docs/marketstorm-results.md`. If it exists, load it — the competitive landscape, adjacent market findings, and suite/companion product concepts it contains will enrich the naming process, and you should proceed with that context without prompting. If it does not exist, ask whether the user would like to run `/marketstorm` first; if yes, run the full pipeline, then return here with those findings loaded as context for Step 0.
 
 ---
 
@@ -164,7 +164,7 @@ Best available domain: [domain]
 
 Then list all names eliminated in screening, grouped by round, with a brief reason for each.
 
-Save the complete output to `namestorm-results.md` in the project root (or current working directory if no project root is identifiable).
+Save the complete output to `docs/namestorm-results.md` (create `docs/` if it doesn't exist; fall back to the current working directory if no project root is identifiable).
 
 Close with both of the following notices:
 
