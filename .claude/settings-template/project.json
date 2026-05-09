@@ -4,12 +4,21 @@
       "Bash(ls \"{{PROJECT_PATH}}/**\")",
       "Bash(find \"{{PROJECT_PATH}}\" *)",
       "Bash(mkdir -p \"{{PROJECT_PATH}}/**\")",
+      "Bash(git -C \"{{PROJECT_PATH}}\" status)",
       "Bash(git -C \"{{PROJECT_PATH}}\" add *)",
       "Bash(git -C \"{{PROJECT_PATH}}\" commit *)",
       "Bash(git -C \"{{PROJECT_PATH}}\" push *)",
-      "Bash(git -C \"{{PROJECT_PATH}}\" checkout *)",
       "Bash(git -C \"{{PROJECT_PATH}}\" pull *)",
-      "Bash(git -C \"{{PROJECT_PATH}}\" stash *)"
+      "Bash(git -C \"{{PROJECT_PATH}}\" fetch *)",
+      "Bash(git -C \"{{PROJECT_PATH}}\" checkout *)",
+      "Bash(git -C \"{{PROJECT_PATH}}\" branch *)",
+      "Bash(git -C \"{{PROJECT_PATH}}\" diff *)",
+      "Bash(git -C \"{{PROJECT_PATH}}\" log *)",
+      "Bash(git -C \"{{PROJECT_PATH}}\" show *)",
+      "Bash(git -C \"{{PROJECT_PATH}}\" remote *)",
+      "Bash(git -C \"{{PROJECT_PATH}}\" stash *)",
+      "Bash(cat \"{{PROJECT_PATH}}/**\")",
+      "Read({{PROJECT_PATH}}/**)"
     ]
   }
 }
