@@ -8,10 +8,13 @@ The authoritative source for shared Claude Code infrastructure across all projec
 |------|---------|
 | `CLAUDE.md` | Universal behavior rules — synced into every project |
 | `.claude/commands/next-step.md` | The `/next-step` orchestration command |
+| `.claude/commands/auto-build.md` | The `/auto-build` autonomous multi-phase build command |
 | `.claude/settings-template/` | Template files used to rebuild `settings.json` in each project |
 | `global-commands/` | Commands deployed to `~/.claude/commands/` for global use |
 | `docs/project-vision.md` | Stub template for per-project product vision |
 | `docs/architecture.md` | Stub template for per-project architecture notes |
+| `docs/user-guide.md` | Stub template for per-project user-facing docs |
+| `docs/admin-guide.md` | Stub template for per-project admin/deployment docs |
 | `INBOX.md` | Stub template for the per-project idea inbox |
 | `SCRATCH.md` | Stub template for the per-project working surface |
 | `BACKLOG.md` | Stub template for the per-project feature backlog |
@@ -31,12 +34,16 @@ The authoritative source for shared Claude Code infrastructure across all projec
 ### Starting a new project
 
 1. Copy the project-specific stubs into your project and fill them in: `BACKLOG.md`, `docs/project-vision.md`, `docs/architecture.md`
-2. Run `/sync-template` — it creates `CLAUDE.md`, `INBOX.md`, `SCRATCH.md`, `next-step.md`, and `settings.json` automatically
+2. Run `/sync-template` — it creates `CLAUDE.md`, `INBOX.md`, `SCRATCH.md`, `next-step.md`, `auto-build.md`, and `settings.json` automatically
 
 ### Keeping projects in sync
 
-Run `/sync-template` in any project to pull the latest `CLAUDE.md` and `next-step.md` and rebuild `settings.json`.
+Run `/sync-template` in any project to pull the latest `CLAUDE.md`, `next-step.md`, and `auto-build.md` and rebuild `settings.json`.
 
 ### Updating shared infrastructure
 
 Make changes on a feature branch and merge to `main`. Run `/sync-template` in downstream projects to pick them up. Run `/deploy-globals` to update the global commands in `~/.claude/commands/`.
+
+### Keeping this README current
+
+When adding or removing commands, changing the file structure, or updating how the template is used, update this file as part of the same PR. Both `/next-step` and `/auto-build` instruct their implementation agents to keep `README.md` in sync automatically.

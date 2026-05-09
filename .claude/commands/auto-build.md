@@ -254,7 +254,9 @@ The implementation sub-agent must:
    it to reflect the new behavior as part of this task. Same check for
    `docs/admin-guide.md` if the work touches config, environment variables, or
    deployment. Do not attempt to populate a stub inline.
-6. **Do not open a PR** — return only: branch name, changed file list, 3-sentence summary
+6. If the work adds or removes commands, changes the file/directory structure, or
+   affects how the template is used, update `README.md` to reflect the current state.
+7. **Do not open a PR** — return only: branch name, changed file list, 3-sentence summary
 
 **3c. Spawn the review sub-agent** (per Step 6 of `/next-step`).
 

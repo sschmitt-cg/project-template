@@ -191,7 +191,9 @@ The implementation agent should:
    `docs/admin-guide.md` if the work touches config, environment variables, or
    deployment. Do not attempt to populate a stub inline — that is handled separately
    in Step 10.
-7. **Do not open a PR** — report back with the branch name and a summary of
+7. If the work adds or removes commands, changes the file/directory structure, or
+   affects how the template is used, update `README.md` to reflect the current state.
+8. **Do not open a PR** — report back with the branch name and a summary of
    all changed files when done
 
 ---
