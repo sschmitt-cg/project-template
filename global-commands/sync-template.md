@@ -51,6 +51,24 @@ gh api repos/sschmitt-cg/project-template/contents/.claude/settings-template/sta
 #### 4c. Substitute placeholders
 In project.json and all stack files, replace every occurrence of `{{PROJECT_PATH}}` with the actual PROJECT_PATH value before reading any allow entries from them.
 
+Also compute `PROJECT_PATH_ESCAPED` by replacing every space in PROJECT_PATH with `\ ` (backslash-space). For example, if PROJECT_PATH is `/Users/scott/Documents/Code Projects/myapp`, then PROJECT_PATH_ESCAPED is `/Users/scott/Documents/Code\ Projects/myapp`.
+
+For each `Bash(...)` allow entry in the substituted project.json and stack files that contains a **quoted string beginning with PROJECT_PATH** (e.g., `Bash(cmd "PROJECT_PATH/...")`, `Bash("PROJECT_PATH/bin/tool" *)`), generate a parallel escaped-path entry:
+- Remove the double-quotes that surround the quoted segment containing PROJECT_PATH
+- Replace the PROJECT_PATH portion within that segment with PROJECT_PATH_ESCAPED
+
+These parallel entries are collected alongside the originals in step 4f. Skip this for `Read(...)` entries — the Read tool receives the raw file path directly, not a shell string, so no escaping is needed.
+
+Examples (PROJECT_PATH = `/Users/scott/Code Projects/myapp`):
+
+| Original (quoted) | Parallel (escaped) |
+|---|---|
+| `Bash(ls "/Users/scott/Code Projects/myapp/**")` | `Bash(ls /Users/scott/Code\ Projects/myapp/**)` |
+| `Bash(git -C "/Users/scott/Code Projects/myapp" add *)` | `Bash(git -C /Users/scott/Code\ Projects/myapp add *)` |
+| `Bash(cat "/Users/scott/Code Projects/myapp/**")` | `Bash(cat /Users/scott/Code\ Projects/myapp/**)` |
+| `Bash("/Users/scott/Code Projects/myapp/venv/bin/python" *)` | `Bash(/Users/scott/Code\ Projects/myapp/venv/bin/python *)` |
+| `Bash(cd "/Users/scott/Code Projects/myapp")` | `Bash(cd /Users/scott/Code\ Projects/myapp)` |
+
 #### 4d. Detect applicable stacks
 Check each stack's `detection` conditions against the project directory:
 
@@ -75,16 +93,18 @@ Read files in the target project using `cat "PROJECT_PATH/..."` via Bash — not
 
 Read the current `permissions.allow` array. Remove any entry that matches either of these conditions:
 1. Contains `&&` — session-approved compound command violations
-2. Contains an absolute path starting with `/Users/` where that path does NOT begin with PROJECT_PATH — stale entries scoped to a different project or user directory
+2. Contains an absolute path starting with `/Users/` (quoted or backslash-escaped) where that path does NOT begin with PROJECT_PATH or PROJECT_PATH_ESCAPED — stale entries scoped to a different project or user directory
 
 Keep all remaining entries.
 
 #### 4f. Compose the final allow list
 Collect `permissions.allow` entries from:
 - universal.json
-- project.json (after placeholder substitution)
-- Each detected stack file (after placeholder substitution)
+- project.json (after placeholder substitution and escaped-path variants from step 4c)
+- Each detected stack file (after placeholder substitution and escaped-path variants from step 4c)
 - The surviving entries from the cleanup in 4e
+
+For each source above, interleave the escaped-path variant immediately after its original entry (e.g., the escaped `git -C PROJECT_PATH_ESCAPED add *` entry follows the quoted `git -C "PROJECT_PATH" add *` entry).
 
 Deduplicate, preserving order (universal first, then project, then stacks, then surviving existing).
 
