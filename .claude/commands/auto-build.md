@@ -249,7 +249,12 @@ The implementation sub-agent must:
 2. Read `docs/architecture.md` and `docs/project-vision.md` before writing code
 3. Run validation gates before and after all changes
 4. Update `BACKLOG.md` to mark the item complete
-5. **Do not open a PR** — return only: branch name, changed file list, 3-sentence summary
+5. If the work implements user-visible behavior, check whether `docs/user-guide.md`
+   exists and is populated (no `> **Template:**` stub marker). If populated, update
+   it to reflect the new behavior as part of this task. Same check for
+   `docs/admin-guide.md` if the work touches config, environment variables, or
+   deployment. Do not attempt to populate a stub inline.
+6. **Do not open a PR** — return only: branch name, changed file list, 3-sentence summary
 
 **3c. Spawn the review sub-agent** (per Step 6 of `/next-step`).
 
@@ -309,7 +314,8 @@ and what condition would trigger revisiting it.
 Give it:
 - The full item list from BUILD_SUMMARY.md
 - The complete list of changed files across the build
-- `docs/user-guide.md` (for user-facing flow coverage)
+- `docs/user-guide.md` if it exists and is populated (no `> **Template:**` stub
+  marker) — for user-facing flow coverage
 
 The sub-agent produces a comprehensive end-to-end test plan organized by user
 flow. It should cover happy paths, key edge cases, and any areas flagged during

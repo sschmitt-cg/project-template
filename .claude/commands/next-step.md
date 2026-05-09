@@ -47,9 +47,11 @@ Check these sources in priority order, **stopping as soon as one yields a clear 
    adding one as a secondary note in the Step 3 proposal — mention it alongside the
    primary task and give the user the option to decline. Only add it if they agree.
 4. **Generate options** — only if no open issues and no clear backlog item.
-   Read `docs/project-vision.md` now, then generate exactly **3 options**:
+   Read `docs/project-vision.md` now, then generate **3 options**. Mix backlog
+   items and new ideas based on what's available — prefer variety:
    - An unstarted or deprioritized BACKLOG item worth revisiting `[BACKLOG]`
    - An innovation based on the project's vision `[NEW IDEA]`
+   - A third option of whichever type adds the most distinct value `[BACKLOG]` or `[NEW IDEA]`
 
 ---
 
@@ -242,7 +244,7 @@ The security sub-agent reads every changed file and checks specifically for:
 - Injection vulnerabilities: SQL, shell command injection, XSS, path traversal
 - Sensitive data (tokens, PII, passwords) leaking into logs, error messages, or API responses
 - Insecure defaults: disabled TLS validation, overly permissive CORS, missing auth checks
-- Dependencies with known CVEs — run `npm audit` or `pip audit` if applicable and report any findings
+- Dependencies with known CVEs — run `npm audit` or `pip-audit` if applicable and report any findings
 
 Apply the same rules as Step 6 for findings:
 
@@ -309,7 +311,7 @@ After each autonomous fix: record the failure and fix in one line, commit, push,
 Mention any stub docs that need a dedicated pass alongside the PR URL and let the
 user decide whether to act now or defer.
 
-**Cleanup:** Delete `.claude/settings.local.json` if it exists.
+**Cleanup:** Delete `.claude/settings.local.json` if it exists. Delete `.build/session-plan.md` if it exists.
 
 ---
 
