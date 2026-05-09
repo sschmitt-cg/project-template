@@ -183,7 +183,13 @@ The implementation agent should:
    emerged from the work; update `docs/project-vision.md` or `docs/architecture.md`
    if new design principles, platform constraints, or architectural decisions were
    established
-6. **Do not open a PR** — report back with the branch name and a summary of
+6. If the work implements user-visible behavior, check whether `docs/user-guide.md`
+   exists and is populated (no `> **Template:**` stub marker). If populated, update
+   it to reflect the new behavior as part of this task. Same check for
+   `docs/admin-guide.md` if the work touches config, environment variables, or
+   deployment. Do not attempt to populate a stub inline — that is handled separately
+   in Step 10.
+7. **Do not open a PR** — report back with the branch name and a summary of
    all changed files when done
 
 ---
@@ -289,13 +295,19 @@ After each autonomous fix: record the failure and fix in one line, commit, push,
 
 ## Step 10 — Docs update and cleanup
 
-**Docs check:** Review the list of files changed in this session's PR.
+**Stub check:** Review the list of files changed in this session's PR.
 
-- If any changed file implements user-visible behavior (components, pages, API routes, features): check whether `docs/user-guide.md` still contains the `> **Template:**` stub marker, or was not touched in this session. If so, propose a follow-on docs update to the user.
-- If any changed file touches config, environment variables, or deployment: apply the same check to `docs/admin-guide.md`.
+- If any changed file implements user-visible behavior and `docs/user-guide.md`
+  still contains the `> **Template:**` stub marker: propose a dedicated follow-on
+  docs task to the user. Do not attempt to populate it inline.
+- If any changed file touches config, environment variables, or deployment and
+  `docs/admin-guide.md` still contains the stub marker: same.
+- If the guide docs are already populated, they were updated by the implementation
+  agent in Step 5 — no action needed here.
 - If neither condition applies (pure refactor, tooling, infrastructure): skip.
 
-Mention any needed docs updates alongside the PR URL and let the user decide whether to act now or defer.
+Mention any stub docs that need a dedicated pass alongside the PR URL and let the
+user decide whether to act now or defer.
 
 **Cleanup:** Delete `.claude/settings.local.json` if it exists.
 

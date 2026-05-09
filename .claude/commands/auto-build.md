@@ -257,7 +257,9 @@ The implementation sub-agent must:
 
 **3e. Open PR and monitor CI** (per Steps 8–9 of `/next-step`, up to 5 rounds each).
 
-**3f. Merge and continue.** Once CI passes:
+**3f. Docs and stub check** (per Step 10 of `/next-step`).
+
+**3g. Merge and continue.** Once CI passes:
 - Run `gh pr merge <number> --merge --delete-branch`
 - Run `git checkout main`
 - Run `git pull`
@@ -336,16 +338,7 @@ security review.
 [From test-plan sub-agent]
 ```
 
-### 4d. Docs update
-
-Check changed files across the entire build:
-- If user-visible features were built and `docs/user-guide.md` still contains
-  the `> **Template:**` stub marker: spawn a docs sub-agent to populate it based
-  on what was built.
-- If config/env/deployment work was done and `docs/admin-guide.md` still
-  contains the stub marker: same.
-
-### 4e. Cleanup
+### 4d. Cleanup
 
 Delete `.claude/settings.local.json`.
 
