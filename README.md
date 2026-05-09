@@ -23,6 +23,8 @@ The authoritative source for shared Claude Code infrastructure across all projec
 - **sync-template** — pulls latest shared files from this repo into the current project
 - **launch-session** — session startup routine
 - **deploy-globals** — deploys `global-commands/` to `~/.claude/commands/`
+- **marketstorm** — multi-agent competitive market analysis: discovers competitors, mines weaknesses, evaluates demand, and surfaces adjacent opportunities
+- **namestorm** — multi-agent naming pipeline: generates candidates, screens availability, runs pro/con analysis, ranks and summarizes
 
 ## How to use
 

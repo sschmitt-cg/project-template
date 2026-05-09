@@ -83,7 +83,11 @@
       "Bash(python3 -m mypy *)",
       "Bash(python3 -m ruff *)",
       "Bash(pip install *)",
-      "Bash(pip3 install *)"
+      "Bash(pip3 install *)",
+      "Bash(whois *)",
+      "Bash(dig *)",
+      "WebSearch(*)",
+      "WebFetch(*)"
     ]
   },
   "hooks": {
