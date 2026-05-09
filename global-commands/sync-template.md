@@ -18,6 +18,8 @@ gh api repos/sschmitt-cg/project-template/contents/.claude/commands/next-step.md
 
 These files should exist in every project but contain project-specific content — create them only if absent; never overwrite.
 
+Check existence with `ls "PROJECT_PATH/FILENAME" 2>/dev/null || echo "absent"` — any output other than `"absent"` means the file is present. Do not use `&&` in the existence check; use only the `||` form.
+
 **INBOX.md** — if the file does not exist, fetch and write the template version:
 ```
 gh api repos/sschmitt-cg/project-template/contents/INBOX.md --jq '.content' | base64 -d
@@ -69,6 +71,8 @@ Check each stack's `detection` conditions against the project directory:
 **prisma** — apply if `package.json` contains `"prisma"` or `"@prisma/client"`
 
 #### 4e. Clean up the existing settings.json (if it exists)
+Read files in the target project using `cat "PROJECT_PATH/..."` via Bash — not the Read tool. The Read tool prompts for permission on files outside the current project directory; `cat` is auto-allowed.
+
 Read the current `permissions.allow` array. Remove any entry that matches either of these conditions:
 1. Contains `&&` — session-approved compound command violations
 2. Contains an absolute path starting with `/Users/` where that path does NOT begin with PROJECT_PATH — stale entries scoped to a different project or user directory
