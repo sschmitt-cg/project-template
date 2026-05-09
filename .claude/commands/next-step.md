@@ -21,12 +21,22 @@ that is the task. Skip to Step 3.
 Check these sources in priority order, **stopping as soon as one yields a clear task**:
 
 1. **Open PRs** — run `gh pr list --state open`. If any PR has unresolved CI
-   failures, resume from Step 8 with that PR. Stop here.
+   failures, resume from Step 9 with that PR. Stop here.
 2. **Open GitHub issues** — run `gh issue list --state open`. If any exist,
    the highest-priority issue is the task. Stop here.
 3. **`BACKLOG.md`** — only if no open issues. Prefer items near the top of
    their phase or that unblock others. If a clear prioritized item exists,
    use it. Stop here.
+
+   **Recurring security audit:** If `BACKLOG.md` contains a security audit item
+   with a `last completed` date, run `git log --oneline --after="<date>" | wc -l`
+   to count commits since that audit. Treat as immediately due if `last completed`
+   is "never"; treat as high priority if more than 20 commits or more than 28 days
+   have elapsed since the last audit.
+
+   If `BACKLOG.md` has no `Maintenance` section or no security audit item, include
+   adding one as a secondary note in the Step 3 proposal — mention it alongside the
+   primary task and give the user the option to decline. Only add it if they agree.
 4. **Generate options** — only if no open issues and no clear backlog item.
    Read `docs/project-vision.md` now, then generate exactly **3 options**:
    - An unstarted or deprioritized BACKLOG item worth revisiting `[BACKLOG]`
@@ -135,9 +145,33 @@ of what is unresolved.
 
 ---
 
-## Step 7 — Open the PR
+## Step 7 — Security review
 
-Once the review sub-agent gives a clean pass, open a PR:
+Spawn a focused security sub-agent. Give it:
+- The branch name and full list of changed files
+
+The security sub-agent reads every changed file and checks specifically for:
+- Exposed secrets, API keys, or credentials in code, config, or any file that could be committed
+- Injection vulnerabilities: SQL, shell command injection, XSS, path traversal
+- Sensitive data (tokens, PII, passwords) leaking into logs, error messages, or API responses
+- Insecure defaults: disabled TLS validation, overly permissive CORS, missing auth checks
+- Dependencies with known CVEs — run `npm audit` or `pip audit` if applicable and report any findings
+
+Apply the same rules as Step 6 for findings:
+
+**Fix autonomously:**
+- Clear security violation with an unambiguous fix (e.g., remove a hardcoded secret, add input sanitization)
+
+**Stop, summarize, and ask the user:**
+- Anything requiring a design decision or where the correct fix is unclear
+
+Once the security sub-agent gives a clean pass, proceed to Step 8.
+
+---
+
+## Step 8 — Open the PR
+
+Once both the review and security sub-agents give a clean pass, open a PR:
 
 ```
 gh pr create --base main
@@ -145,11 +179,11 @@ gh pr create --base main
 
 Follow CLAUDE.md PR requirements for the description, including the three-section test plan format.
 
-Report the PR URL to the user and proceed to Step 8 automatically (no pause needed — CI monitoring is low cost and expected).
+Report the PR URL to the user and proceed to Step 9 automatically (no pause needed — CI monitoring is low cost and expected).
 
 ---
 
-## Step 8 — Monitor CI and iterate (up to 5 rounds)
+## Step 9 — Monitor CI and iterate (up to 5 rounds)
 
 Check CI status with `gh pr checks <number>`. Wait 30 seconds between polls;
 use `gh run watch` to stream a job that is actively running. For each failure,
