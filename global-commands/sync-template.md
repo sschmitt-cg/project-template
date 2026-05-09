@@ -92,6 +92,14 @@ Build the final settings.json as follows:
 
 Write the result to `.claude/settings.json`.
 
+## .gitignore — ensure settings files are excluded
+
+`settings.json` and `settings.local.json` are never committed. Verify `.gitignore` has entries for both.
+
+If `.gitignore` does not exist, create it.
+If `.gitignore` does not contain `.claude/settings.json`, append it.
+If `.gitignore` does not contain `.claude/settings.local.json`, append it.
+
 ## What NOT to sync
 
 Do not touch:
@@ -100,7 +108,6 @@ Do not touch:
 - `BACKLOG.md`
 - `INBOX.md` (if it already exists — working surface, project-specific)
 - `SCRATCH.md` (if it already exists — working surface, project-specific)
-- `.gitignore`
 - Any key in settings.json other than `permissions.allow` and `hooks`
 
 ## After syncing
