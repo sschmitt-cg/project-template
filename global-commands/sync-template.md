@@ -14,7 +14,13 @@ Fetch and overwrite the local copy:
 gh api repos/sschmitt-cg/project-template/contents/.claude/commands/next-step.md --jq '.content' | base64 -d
 ```
 
-### 3. One-time stub files
+### 3. .claude/commands/auto-build.md
+Fetch and overwrite the local copy:
+```
+gh api repos/sschmitt-cg/project-template/contents/.claude/commands/auto-build.md --jq '.content' | base64 -d
+```
+
+### 4. One-time stub files
 
 These files should exist in every project but contain project-specific content — create them only if absent; never overwrite.
 
@@ -40,14 +46,14 @@ gh api repos/sschmitt-cg/project-template/contents/docs/user-guide.md --jq '.con
 gh api repos/sschmitt-cg/project-template/contents/docs/admin-guide.md --jq '.content' | base64 -d
 ```
 
-### 4. .claude/settings.json — rebuild from template files
+### 5. .claude/settings.json — rebuild from template files
 
 `settings.json` is gitignored and never committed. This step is the authoritative source for what goes in it.
 
-#### 4a. Determine the project path
+#### 5a. Determine the project path
 Run `git rev-parse --show-toplevel` and store the result as PROJECT_PATH.
 
-#### 4b. Fetch the template files
+#### 5b. Fetch the template files
 Fetch each of the following from the template repo:
 ```
 gh api repos/sschmitt-cg/project-template/contents/.claude/settings-template/universal.json --jq '.content' | base64 -d
@@ -58,7 +64,7 @@ gh api repos/sschmitt-cg/project-template/contents/.claude/settings-template/sta
 gh api repos/sschmitt-cg/project-template/contents/.claude/settings-template/stacks/prisma.json --jq '.content' | base64 -d
 ```
 
-#### 4c. Substitute placeholders
+#### 5c. Substitute placeholders
 In project.json and all stack files, replace every occurrence of `{{PROJECT_PATH}}` with the actual PROJECT_PATH value before reading any allow entries from them.
 
 Also compute `PROJECT_PATH_ESCAPED` by replacing every space in PROJECT_PATH with `\ ` (backslash-space). For example, if PROJECT_PATH is `/Users/scott/Documents/Code Projects/myapp`, then PROJECT_PATH_ESCAPED is `/Users/scott/Documents/Code\ Projects/myapp`.
@@ -79,7 +85,7 @@ Examples (PROJECT_PATH = `/Users/scott/Code Projects/myapp`):
 | `Bash("/Users/scott/Code Projects/myapp/venv/bin/python" *)` | `Bash(/Users/scott/Code\ Projects/myapp/venv/bin/python *)` |
 | `Bash(cd "/Users/scott/Code Projects/myapp")` | `Bash(cd /Users/scott/Code\ Projects/myapp)` |
 
-#### 4d. Detect applicable stacks
+#### 5d. Detect applicable stacks
 Check each stack's `detection` conditions against the project directory:
 
 **python** — apply if any of these are true:
@@ -98,7 +104,7 @@ Check each stack's `detection` conditions against the project directory:
 
 **prisma** — apply if `package.json` contains `"prisma"` or `"@prisma/client"`
 
-#### 4e. Clean up the existing settings.json (if it exists)
+#### 5e. Clean up the existing settings.json (if it exists)
 Read files in the target project using `cat "PROJECT_PATH/..."` via Bash — not the Read tool. The Read tool prompts for permission on files outside the current project directory; `cat` is auto-allowed.
 
 Read the current `permissions.allow` array. Remove any entry that matches either of these conditions:
@@ -107,7 +113,7 @@ Read the current `permissions.allow` array. Remove any entry that matches either
 
 Keep all remaining entries.
 
-#### 4f. Compose the final allow list
+#### 5f. Compose the final allow list
 Collect `permissions.allow` entries from:
 - universal.json
 - project.json (after placeholder substitution and escaped-path variants from step 4c)
@@ -118,7 +124,7 @@ For each source above, interleave the escaped-path variant immediately after its
 
 Deduplicate, preserving order (universal first, then project, then stacks, then surviving existing).
 
-#### 4g. Write settings.json
+#### 5g. Write settings.json
 Build the final settings.json as follows:
 - Start with the structure from universal.json (this provides the `hooks` and top-level shape)
 - Set `permissions.allow` to the composed list from 4f
@@ -126,19 +132,20 @@ Build the final settings.json as follows:
 
 Write the result to `.claude/settings.json`.
 
-## .gitignore — ensure settings files are excluded
+## .gitignore — ensure template files are excluded
 
-`settings.json` and `settings.local.json` are never committed. Verify `.gitignore` has entries for both.
+`settings.json`, `settings.local.json`, and `.build/` are never committed. Verify `.gitignore` has entries for all three.
 
 If `.gitignore` does not exist, create it.
 If `.gitignore` does not contain `.claude/settings.json`, append it.
 If `.gitignore` does not contain `.claude/settings.local.json`, append it.
+If `.gitignore` does not contain `.build/`, append it.
 
 **Untrack if currently committed:** After updating `.gitignore`, run `git ls-files .claude/settings.json`. If the output is non-empty, the file is tracked and must be removed from the index:
 - Run `git rm --cached .claude/settings.json`
 - Include this staged removal in the same sync commit below — do NOT create a separate branch or PR for it
 
-## 5. Test infrastructure check
+## 6. Test infrastructure check
 
 Check whether the project has a test runner configured. At least one of these must be true:
 

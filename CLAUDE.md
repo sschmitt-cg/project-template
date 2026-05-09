@@ -18,6 +18,7 @@ constraints, and current work status.
 | `INBOX.md` | Raw ideas routed here from the Apple Notes inbox — not authoritative |
 | `SCRATCH.md` | In-session working space for discussion and exploration before committing |
 | `.claude/commands/next-step.md` | Orchestration logic for the `/next-step` slash command |
+| `.claude/commands/auto-build.md` | Orchestration logic for the `/auto-build` slash command |
 
 ---
 

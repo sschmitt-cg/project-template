@@ -214,7 +214,8 @@ The implementation sub-agent must:
 
 **3f. Merge and continue.** Once CI passes:
 - Run `gh pr merge <number> --merge --delete-branch`
-- Run `git checkout main && git pull`
+- Run `git checkout main`
+- Run `git pull`
 - Append to `.build/BUILD_SUMMARY.md`:
   ```
   ✓ [Item name] — [3-sentence summary] — PR #[n]
