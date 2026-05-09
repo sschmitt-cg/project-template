@@ -92,10 +92,11 @@ Build the final settings.json as follows:
 
 Write the result to `.claude/settings.json`.
 
-### 5. .gitignore — ensure settings files are excluded
+## .gitignore — ensure settings files are excluded
 
 `settings.json` and `settings.local.json` are never committed. Verify `.gitignore` has entries for both.
 
+If `.gitignore` does not exist, create it.
 If `.gitignore` does not contain `.claude/settings.json`, append it.
 If `.gitignore` does not contain `.claude/settings.local.json`, append it.
 

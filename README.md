@@ -28,13 +28,12 @@ The authoritative source for shared Claude Code infrastructure across all projec
 
 ### Starting a new project
 
-1. Copy the stub files into your project: `CLAUDE.md`, `INBOX.md`, `SCRATCH.md`, `BACKLOG.md`, `docs/project-vision.md`, `docs/architecture.md`
-2. Fill in the project-specific content
-3. Run `/sync-template` to generate `settings.json` and pull the latest commands
+1. Copy the project-specific stubs into your project and fill them in: `BACKLOG.md`, `docs/project-vision.md`, `docs/architecture.md`
+2. Run `/sync-template` — it creates `CLAUDE.md`, `INBOX.md`, `SCRATCH.md`, `next-step.md`, and `settings.json` automatically
 
 ### Keeping projects in sync
 
-Run `/sync-template` in any project to pull the latest `CLAUDE.md`, `next-step.md`, and a freshly rebuilt `settings.json`.
+Run `/sync-template` in any project to pull the latest `CLAUDE.md` and `next-step.md` and rebuild `settings.json`.
 
 ### Updating shared infrastructure
 
