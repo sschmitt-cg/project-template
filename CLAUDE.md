@@ -18,6 +18,7 @@ constraints, and current work status.
 | `INBOX.md` | Raw ideas routed here from the Apple Notes inbox — not authoritative |
 | `SCRATCH.md` | In-session working space for discussion and exploration before committing |
 | `.claude/commands/next-step.md` | Orchestration logic for the `/next-step` slash command |
+| `.claude/commands/auto-build.md` | Orchestration logic for the `/auto-build` slash command |
 
 ---
 
@@ -30,6 +31,12 @@ propose the change clearly and wait for explicit confirmation. Never edit them s
 
 `INBOX.md` and `SCRATCH.md` are working surfaces. They can be freely updated during
 sessions without confirmation.
+
+### Documentation maintenance
+`docs/user-guide.md` and `docs/admin-guide.md` are user-facing documents — keep them current alongside code changes:
+- When implementing a feature with user-visible behavior, update `docs/user-guide.md`.
+- When making configuration, environment variable, or deployment changes, update `docs/admin-guide.md`.
+- If either file still contains the stub template (check for the `> **Template:**` marker), propose a comprehensive docs update as a dedicated follow-on task rather than attempting it inline.
 
 ### Inbox workflow
 When the user asks to process the inbox, read `INBOX.md`, discuss how the items map
