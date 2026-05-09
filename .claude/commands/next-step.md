@@ -104,17 +104,59 @@ Key files: [list files most relevant to this task]
 Open questions: [any unresolved questions, or "none"]
 ```
 
-**5b. Write `.claude/settings.local.json`** to expand sub-agent permissions for this session:
+**5b. Generate `.claude/settings.local.json`** tailored to this project's stack.
 
-```json
-{
-  "permissions": {
-    "allow": [
-      "Bash(gh pr create *)"
-    ]
-  }
-}
+Inspect the project the same way auto-build does: check for `pnpm-lock.yaml`,
+`package.json`, `requirements.txt`/`pyproject.toml`, `.venv/`, `venv/`.
+
+Build the allow list and write it to `.claude/settings.local.json`:
+
+**Always include** — universal git, filesystem, and gh operations:
 ```
+"Bash(ls *)", "Bash(find *)", "Bash(cat *)",
+"Bash(git -C * status)", "Bash(git -C * add *)", "Bash(git -C * commit *)",
+"Bash(git -C * push *)", "Bash(git -C * pull)", "Bash(git -C * pull *)",
+"Bash(git -C * checkout *)", "Bash(git -C * branch *)", "Bash(git -C * diff *)",
+"Bash(git -C * log *)", "Bash(git -C * stash *)", "Bash(git -C * show *)",
+"Bash(git -C * remote *)",
+"Bash(gh pr create *)", "Bash(gh pr view *)", "Bash(gh pr list *)",
+"Bash(gh pr checks *)", "Bash(gh run *)", "Bash(gh issue *)"
+```
+
+**npm project**: also add
+```
+"Bash(npm install *)", "Bash(npm run *)", "Bash(npm test *)",
+"Bash(npm audit *)", "Bash(npx tsc *)", "Bash(npx eslint *)", "Bash(npx prettier *)", "Bash(npx create-*)"
+```
+
+**pnpm project**: also add
+```
+"Bash(pnpm install *)", "Bash(pnpm add *)", "Bash(pnpm run *)",
+"Bash(pnpm test *)", "Bash(pnpm exec *)", "Bash(npx tsc *)", "Bash(npx eslint *)", "Bash(npx prettier *)", "Bash(npx create-*)"
+```
+
+**Python project**: also add
+```
+"Bash(python -m pytest *)", "Bash(python3 -m pytest *)",
+"Bash(python3 -m mypy *)", "Bash(python3 -m ruff *)",
+"Bash(pip install *)", "Bash(pip3 install *)"
+```
+
+**Python with `.venv/`**: also add
+```
+"Bash(./.venv/bin/python *)", "Bash(./.venv/bin/python3 *)",
+"Bash(./.venv/bin/pip *)", "Bash(./.venv/bin/pytest *)",
+"Bash(./.venv/bin/mypy *)", "Bash(./.venv/bin/ruff *)"
+```
+
+**Python with `venv/`**: also add
+```
+"Bash(./venv/bin/python *)", "Bash(./venv/bin/python3 *)",
+"Bash(./venv/bin/pip *)", "Bash(./venv/bin/pytest *)",
+"Bash(./venv/bin/mypy *)", "Bash(./venv/bin/ruff *)"
+```
+
+Note: `gh pr merge *` is intentionally excluded — merges require explicit user confirmation in next-step.
 
 **5c. Spawn a focused implementation sub-agent** with this context:
 - The agreed task description
@@ -126,15 +168,22 @@ Open questions: [any unresolved questions, or "none"]
 Do not include full conversation history in the handoff prompt.
 
 The implementation agent should:
-1. Read `docs/architecture.md` and `docs/project-vision.md` fully before writing
+1. **As its absolute first action**, write `.claude/settings.local.json` to its
+   current working directory. The orchestrator must supply the **literal JSON
+   content** (not a description of it) in the sub-agent's handoff prompt, copied
+   verbatim from what was written in Step 5b. This is required because the
+   sub-agent may run in a git worktree that does not inherit the orchestrator's
+   project settings, and passing literal content prevents the sub-agent from
+   reconstructing a different (potentially more permissive) allow list.
+2. Read `docs/architecture.md` and `docs/project-vision.md` fully before writing
    any code (`CLAUDE.md` is loaded automatically as project instructions)
-2. Run all validation gates (per CLAUDE.md) before changes to establish a clean baseline, and again after all changes are complete
-3. Follow commit conventions from CLAUDE.md
-4. Update `BACKLOG.md` to check off any completed items and add new items that
+3. Run all validation gates (per CLAUDE.md) before changes to establish a clean baseline, and again after all changes are complete
+4. Follow commit conventions from CLAUDE.md
+5. Update `BACKLOG.md` to check off any completed items and add new items that
    emerged from the work; update `docs/project-vision.md` or `docs/architecture.md`
    if new design principles, platform constraints, or architectural decisions were
    established
-5. **Do not open a PR** — report back with the branch name and a summary of
+6. **Do not open a PR** — report back with the branch name and a summary of
    all changed files when done
 
 ---
