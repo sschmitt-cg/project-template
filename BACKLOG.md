@@ -2,6 +2,7 @@
 
 ## Phase 0 — Foundation
 
+- [ ] Set up test infrastructure — configure test runner, write initial tests covering all functionality built prior to this setup
 - [ ] Item
 
 ## Phase 1 — [Name]
