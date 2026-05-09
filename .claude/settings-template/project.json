@@ -21,7 +21,9 @@
       "Bash(cd \"{{PROJECT_PATH}}\")",
       "Bash(cd \"{{PROJECT_PATH}}/**\")",
       "Bash(\"{{PROJECT_PATH}}/node_modules/.bin/*\" *)",
-      "Read({{PROJECT_PATH}}/**)"
+      "Read({{PROJECT_PATH}}/**)",
+      "Write({{PROJECT_PATH}}/**)",
+      "Edit({{PROJECT_PATH}}/**)"
     ]
   }
 }

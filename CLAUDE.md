@@ -31,6 +31,12 @@ propose the change clearly and wait for explicit confirmation. Never edit them s
 `INBOX.md` and `SCRATCH.md` are working surfaces. They can be freely updated during
 sessions without confirmation.
 
+### Documentation maintenance
+`docs/user-guide.md` and `docs/admin-guide.md` are user-facing documents — keep them current alongside code changes:
+- When implementing a feature with user-visible behavior, update `docs/user-guide.md`.
+- When making configuration, environment variable, or deployment changes, update `docs/admin-guide.md`.
+- If either file still contains the stub template (check for the `> **Template:**` marker), propose a comprehensive docs update as a dedicated follow-on task rather than attempting it inline.
+
 ### Inbox workflow
 When the user asks to process the inbox, read `INBOX.md`, discuss how the items map
 to the project vision and backlog, propose any changes to `docs/project-vision.md` or

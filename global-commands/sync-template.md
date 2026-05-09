@@ -30,6 +30,16 @@ gh api repos/sschmitt-cg/project-template/contents/INBOX.md --jq '.content' | ba
 gh api repos/sschmitt-cg/project-template/contents/SCRATCH.md --jq '.content' | base64 -d
 ```
 
+**docs/user-guide.md** — if the file does not exist, fetch and write the template version:
+```
+gh api repos/sschmitt-cg/project-template/contents/docs/user-guide.md --jq '.content' | base64 -d
+```
+
+**docs/admin-guide.md** — if the file does not exist, fetch and write the template version:
+```
+gh api repos/sschmitt-cg/project-template/contents/docs/admin-guide.md --jq '.content' | base64 -d
+```
+
 ### 4. .claude/settings.json — rebuild from template files
 
 `settings.json` is gitignored and never committed. This step is the authoritative source for what goes in it.
@@ -128,14 +138,47 @@ If `.gitignore` does not contain `.claude/settings.local.json`, append it.
 - Run `git rm --cached .claude/settings.json`
 - Include this staged removal in the same sync commit below — do NOT create a separate branch or PR for it
 
+## 5. Test infrastructure check
+
+Check whether the project has a test runner configured. At least one of these must be true:
+
+- `package.json` has a `"test"` script (check with `cat "PROJECT_PATH/package.json" | jq '.scripts.test // empty'`)
+- `jest.config.js`, `jest.config.ts`, or `jest.config.json` exists
+- `vitest.config.js` or `vitest.config.ts` exists
+- `pytest.ini` exists
+- `pyproject.toml` contains `[tool.pytest.ini_options]`
+- `.mocharc.js`, `.mocharc.yml`, or `.mocharc.json` exists
+- A `__tests__/` directory exists
+- A `tests/` or `test/` directory containing at least one file exists
+
+If none of these are found, inject the following item into `BACKLOG.md`. Find the `## Phase 0` section (or the first phase section if Phase 0 does not exist) and insert after the section header, before any existing items:
+
+```
+- [ ] Set up test infrastructure — configure test runner, write initial tests covering all functionality built prior to this setup
+```
+
+If `BACKLOG.md` does not exist, create it with this content:
+
+```
+# Backlog
+
+## Phase 0 — Foundation
+
+- [ ] Set up test infrastructure — configure test runner, write initial tests covering all functionality built prior to this setup
+```
+
+Do not inject if the item already exists anywhere in BACKLOG.md (check for "Set up test infrastructure" before inserting).
+
 ## What NOT to sync
 
 Do not touch:
 - `docs/project-vision.md`
 - `docs/architecture.md`
-- `BACKLOG.md`
+- `BACKLOG.md` (except the test infrastructure injection above — that single item may be added if absent)
 - `INBOX.md` (if it already exists — working surface, project-specific)
 - `SCRATCH.md` (if it already exists — working surface, project-specific)
+- `docs/user-guide.md` (if it already exists — project-specific content)
+- `docs/admin-guide.md` (if it already exists — project-specific content)
 - Any key in settings.json other than `permissions.allow` and `hooks`
 
 ## After syncing

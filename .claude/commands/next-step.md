@@ -8,6 +8,15 @@ that runs straight through unless a decision is needed that you cannot resolve.
 
 ---
 
+## Pre-flight
+
+Check for `.claude/settings.local.json`. If the file exists, a previous session
+may not have cleaned up. Report to the user: "A session-permissions file from a
+previous run exists at `.claude/settings.local.json`. Delete it before
+continuing?" Stop and wait for confirmation before proceeding.
+
+---
+
 ## Step 1 — Check conversation context
 
 Before looking anywhere else, review the current conversation thread for any
@@ -84,10 +93,33 @@ Never create a branch from any base other than an up-to-date main.
 
 ## Step 5 — Hand off to implementation agent
 
-Once the user confirms and the branch is resolved, spawn a focused implementation
-sub-agent with this context:
+Once the user confirms and the branch is resolved:
+
+**5a. Write `.build/session-plan.md`** (create the `.build/` directory if it does not exist):
+
+```
+Task: [one sentence]
+Approach: [2–3 sentences on implementation strategy]
+Key files: [list files most relevant to this task]
+Open questions: [any unresolved questions, or "none"]
+```
+
+**5b. Write `.claude/settings.local.json`** to expand sub-agent permissions for this session:
+
+```json
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh pr create *)"
+    ]
+  }
+}
+```
+
+**5c. Spawn a focused implementation sub-agent** with this context:
 - The agreed task description
 - The branch name to work on
+- The contents of `.build/session-plan.md`
 - Relevant files the agent cannot reasonably discover on its own (non-obvious entry points, key type definitions, config files with non-standard locations)
 - Any constraints specific to this task not already covered by CLAUDE.md
 
@@ -206,9 +238,23 @@ After each autonomous fix: record the failure and fix in one line, commit, push,
 
 ---
 
+## Step 10 — Docs update and cleanup
+
+**Docs check:** Review the list of files changed in this session's PR.
+
+- If any changed file implements user-visible behavior (components, pages, API routes, features): check whether `docs/user-guide.md` still contains the `> **Template:**` stub marker, or was not touched in this session. If so, propose a follow-on docs update to the user.
+- If any changed file touches config, environment variables, or deployment: apply the same check to `docs/admin-guide.md`.
+- If neither condition applies (pure refactor, tooling, infrastructure): skip.
+
+Mention any needed docs updates alongside the PR URL and let the user decide whether to act now or defer.
+
+**Cleanup:** Delete `.claude/settings.local.json` if it exists.
+
+---
+
 ## Notes
 
 - Token budget: each sub-agent starts with a fresh context window and has no memory of prior sub-agent runs.
 - The `.claude/` directory is version-controlled in this repo (except
-  `settings.json` and `settings.local.json`, which are gitignored). Changes to
-  commands should be committed on a feature branch like any other code change.
+  `settings.json`, `settings.local.json`, and `.build/`, which are gitignored).
+  Changes to commands should be committed on a feature branch like any other code change.
