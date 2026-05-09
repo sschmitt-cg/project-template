@@ -47,6 +47,10 @@ For small, unambiguous tasks this step can be skipped.
 Ask rather than assume. One short clarifying question is better than building
 the wrong thing.
 
+### Factual accuracy
+- **Claude in session:** Verify claims before asserting them. Do not rely on training data for specifics that change over time (library versions, API behavior, current events). Search for current information, check official docs, or explicitly flag uncertainty. Never fabricate citations, version numbers, URLs, or behavior descriptions.
+- **App runtime:** When the project presents factual data to end users, ensure it is sourced from a reliable, current source rather than a static snapshot or hardcoded value. Flag any potentially stale data in code review.
+
 ### TypeScript
 - Never use `any` without a comment on the same line explaining why.
 - Prefer explicit return types on exported functions.
