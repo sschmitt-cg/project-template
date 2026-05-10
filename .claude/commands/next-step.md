@@ -104,6 +104,8 @@ Open questions: [any unresolved questions, or "none"]
 - Relevant files the agent cannot reasonably discover on its own (non-obvious entry points, key type definitions, config files with non-standard locations)
 - Any constraints specific to this task not already covered by CLAUDE.md
 
+Do NOT use `isolation: "worktree"` when spawning the implementation sub-agent — it works in the main project directory on its feature branch.
+
 Do not include full conversation history in the handoff prompt.
 
 The implementation agent should:
@@ -251,5 +253,5 @@ user decide whether to act now or defer.
 
 - Token budget: each sub-agent starts with a fresh context window and has no memory of prior sub-agent runs.
 - The `.claude/` directory is version-controlled in this repo (except
-  `settings.json`, `settings.local.json`, and `.build/`, which are gitignored).
+  `settings.json` and `.build/`, which are gitignored).
   Changes to commands should be committed on a feature branch like any other code change.

@@ -9,11 +9,7 @@ only when something is truly broken or a decision cannot be safely deferred.
 
 ## Pre-flight
 
-Check for existing session artifacts:
-
-- If `.build/BUILD_PLAN.md` exists: offer to resume the previous build or start
-  fresh. If resuming, skip to Phase 3 and continue from the first uncompleted
-  item in BUILD_PLAN.md.
+If `.build/BUILD_PLAN.md` exists, offer to resume the previous build or start fresh. If resuming, skip to Phase 3 and continue from the first uncompleted item in BUILD_PLAN.md.
 
 ---
 
@@ -282,7 +278,7 @@ security review.
 [From test-plan sub-agent]
 ```
 
-### 4d. Cleanup
+### 4d. Final report
 
 Report to the user:
 - Build complete (or partial, with reason for stopping)
