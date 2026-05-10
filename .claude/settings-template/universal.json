@@ -97,7 +97,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "cmd=$(jq -r '.tool_input.command // empty' 2>/dev/null); case \"$cmd\" in \"git commit\"* | \"git -C \"*) if echo \"$cmd\" | grep -q ' commit'; then branch=$(git branch --show-current 2>/dev/null); if [ \"$branch\" = \"main\" ]; then echo \"Blocked: refusing to commit directly to main. Switch to a feature branch first.\" >&2; exit 2; fi; fi ;; esac",
+            "command": "cmd=$(jq -r '.tool_input.command // empty' 2>/dev/null); case \"$cmd\" in \"git commit\"* | \"git -C \"*) if echo \"$cmd\" | grep -q ' commit'; then if echo \"$cmd\" | grep -q '^git -C '; then if echo \"$cmd\" | grep -q '^git -C \"'; then repo_path=$(echo \"$cmd\" | sed 's/^git -C \"\\([^\"]*\\)\".*/\\1/'); else repo_path=$(echo \"$cmd\" | awk '{print $3}'); fi; branch=$(git -C \"$repo_path\" branch --show-current 2>/dev/null); else branch=$(git branch --show-current 2>/dev/null); fi; if [ \"$branch\" = \"main\" ]; then echo \"Blocked: refusing to commit directly to main. Switch to a feature branch first.\" >&2; exit 2; fi; fi ;; esac",
             "statusMessage": "Checking branch before commit..."
           },
           {
