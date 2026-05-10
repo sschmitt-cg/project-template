@@ -58,14 +58,10 @@ Fetch each of the following from the template repo:
 ```
 gh api repos/sschmitt-cg/project-template/contents/.claude/settings-template/universal.json --jq '.content' | base64 -d
 gh api repos/sschmitt-cg/project-template/contents/.claude/settings-template/project.json --jq '.content' | base64 -d
-gh api repos/sschmitt-cg/project-template/contents/.claude/settings-template/stacks/python.json --jq '.content' | base64 -d
-gh api repos/sschmitt-cg/project-template/contents/.claude/settings-template/stacks/expo.json --jq '.content' | base64 -d
-gh api repos/sschmitt-cg/project-template/contents/.claude/settings-template/stacks/supabase.json --jq '.content' | base64 -d
-gh api repos/sschmitt-cg/project-template/contents/.claude/settings-template/stacks/prisma.json --jq '.content' | base64 -d
 ```
 
 #### 5c. Substitute placeholders
-In project.json and all stack files, replace every occurrence of `{{PROJECT_PATH}}` with the actual PROJECT_PATH value before reading any allow entries from them.
+In project.json, replace every occurrence of `{{PROJECT_PATH}}` with the actual PROJECT_PATH value before reading any allow entries from it.
 
 Also compute `PROJECT_PATH_ESCAPED` by replacing every space in PROJECT_PATH with `\ ` (backslash-space). For example, if PROJECT_PATH is `/Users/scott/Documents/Code Projects/myapp`, then PROJECT_PATH_ESCAPED is `/Users/scott/Documents/Code\ Projects/myapp`.
 
@@ -73,7 +69,7 @@ For each `Bash(...)` allow entry in the substituted project.json and stack files
 - Remove the double-quotes that surround the quoted segment containing PROJECT_PATH
 - Replace the PROJECT_PATH portion within that segment with PROJECT_PATH_ESCAPED
 
-These parallel entries are collected alongside the originals in step 5f. Skip this for `Read(...)` entries — the Read tool receives the raw file path directly, not a shell string, so no escaping is needed.
+These parallel entries are collected alongside the originals in step 5e. Skip this for `Read(...)` entries — the Read tool receives the raw file path directly, not a shell string, so no escaping is needed.
 
 Examples (PROJECT_PATH = `/Users/scott/Code Projects/myapp`):
 
@@ -85,26 +81,7 @@ Examples (PROJECT_PATH = `/Users/scott/Code Projects/myapp`):
 | `Bash("/Users/scott/Code Projects/myapp/venv/bin/python" *)` | `Bash(/Users/scott/Code\ Projects/myapp/venv/bin/python *)` |
 | `Bash(cd "/Users/scott/Code Projects/myapp")` | `Bash(cd /Users/scott/Code\ Projects/myapp)` |
 
-#### 5d. Detect applicable stacks
-Check each stack's `detection` conditions against the project directory:
-
-**python** — apply if any of these are true:
-- `venv/` directory exists
-- `.venv/` directory exists
-- `pyproject.toml` exists
-- `requirements.txt` exists
-- `setup.py` exists
-
-**expo** — apply if `package.json` contains `"expo"` as a dependency key
-
-**supabase** — apply if any of these are true:
-- `supabase/` directory exists
-- `package.json` contains `@supabase/supabase-js` or `@supabase/ssr`
-- `.env` or `.env.local` contains a `SUPABASE_` variable
-
-**prisma** — apply if `package.json` contains `"prisma"` or `"@prisma/client"`
-
-#### 5e. Clean up the existing settings.json (if it exists)
+#### 5d. Clean up the existing settings.json (if it exists)
 Read files in the target project using `cat "PROJECT_PATH/..."` via Bash — not the Read tool. The Read tool prompts for permission on files outside the current project directory; `cat` is auto-allowed.
 
 Read the current `permissions.allow` array. Remove any entry that matches either of these conditions:
@@ -113,21 +90,20 @@ Read the current `permissions.allow` array. Remove any entry that matches either
 
 Keep all remaining entries.
 
-#### 5f. Compose the final allow list
+#### 5e. Compose the final allow list
 Collect `permissions.allow` entries from:
 - universal.json
 - project.json (after placeholder substitution and escaped-path variants from step 5c)
-- Each detected stack file (after placeholder substitution and escaped-path variants from step 5c)
-- The surviving entries from the cleanup in 5e
+- The surviving entries from the cleanup in 5d
 
 For each source above, interleave the escaped-path variant immediately after its original entry (e.g., the escaped `git -C PROJECT_PATH_ESCAPED add *` entry follows the quoted `git -C "PROJECT_PATH" add *` entry).
 
-Deduplicate, preserving order (universal first, then project, then stacks, then surviving existing).
+Deduplicate, preserving order (universal first, then project, then surviving existing).
 
-#### 5g. Write settings.json
+#### 5f. Write settings.json
 Build the final settings.json as follows:
 - Start with the structure from universal.json (this provides the `hooks` and top-level shape)
-- Set `permissions.allow` to the composed list from 5f
+- Set `permissions.allow` to the composed list from 5e
 - If the existing settings.json has keys other than `permissions` and `hooks` (e.g., `additionalDirectories`), preserve them
 
 Write the result to `.claude/settings.json`.
@@ -206,6 +182,6 @@ If changes are detected:
    - Title: `chore: sync from project-template`
    - Body listing which files changed and a note that this was generated by `/sync-template`
    Check for an existing open PR on this branch with `gh pr list --head chore/sync-template --state open` — if one exists, skip creating a new PR and report the existing URL instead.
-6. Re-write `.claude/settings.json` to disk using the content built in step 5g — even if it still exists, write it again. If `git rm --cached` was run earlier, a `git pull` during this session will delete the file when the commit is applied; writing it here ensures it is present as a properly gitignored, untracked local file before handing back to the user.
+6. Re-write `.claude/settings.json` to disk using the content built in step 5f — even if it still exists, write it again. If `git rm --cached` was run earlier, a `git pull` during this session will delete the file when the commit is applied; writing it here ensures it is present as a properly gitignored, untracked local file before handing back to the user.
 
 Note: `.claude/settings.json` is gitignored and will not appear in `git status`. If it was the only file that changed, the status check above will show no tracked changes — report that settings.json was rebuilt locally and no commit is needed.
