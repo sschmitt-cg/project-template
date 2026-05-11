@@ -48,6 +48,17 @@ Check these sources in priority order, **stopping as soon as one yields a clear 
 
 ## Step 3 — Propose and confirm
 
+Before presenting the proposal, check for pending items from prior builds:
+- Run `ls .build/OPEN_QUESTIONS.md 2>/dev/null || echo absent` — if present, read
+  the file and count Unresolved items. **Hold this count** — Step 10 will compare
+  against it to detect any new questions added during implementation.
+- Run `ls .build/TEST_TRACKER.md 2>/dev/null || echo absent` — if present, count
+  items in the Pending section
+
+If either has content, include a brief note alongside the proposal:
+> "Note: X open questions and Y pending tests remain from prior builds.
+> Run `/test-companion` to address them."
+
 Present the proposed task (or 3 options) to the user in a short paragraph:
 - What the task is
 - Why it is the right next step (which audience or principle it serves)
@@ -116,7 +127,9 @@ The implementation agent should:
 4. Update `BACKLOG.md` to check off any completed items and add new items that
    emerged from the work; update `docs/project-vision.md` or `docs/architecture.md`
    if new design principles, platform constraints, or architectural decisions were
-   established
+   established; if any open questions arise that must be deferred, append them to
+   `.build/OPEN_QUESTIONS.md` (Unresolved section, creating the file if absent)
+   with the question text, default used, revisit condition, and today's date
 5. If the work implements user-visible behavior, check whether `docs/user-guide.md`
    exists and is populated (no `> **Template:**` stub marker). If populated, update
    it to reflect the new behavior as part of this task. Same check for
@@ -246,6 +259,11 @@ Mention any stub docs that need a dedicated pass alongside the PR URL and let th
 user decide whether to act now or defer.
 
 **Cleanup:** Delete `.build/session-plan.md` if it exists.
+
+**Pending items:** Re-read `.build/OPEN_QUESTIONS.md` and count Unresolved items.
+If the count is higher than it was in Step 3 (or greater than zero if the file
+didn't exist in Step 3), report the delta in the final summary alongside the PR URL
+(e.g., "1 new open question added — run `/test-companion` to address it").
 
 ---
 

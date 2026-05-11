@@ -1,4 +1,4 @@
-Pull the latest shared files from the project template repo (sschmitt-cg/project-template) into the current project. Syncs universal rules, the next-step command, and rebuilds settings.json from the template files.
+Pull the latest shared files from the project template repo (sschmitt-cg/project-template) into the current project. Syncs universal rules, command files (next-step, auto-build, test-companion), and rebuilds settings.json from the template files.
 
 ## Files to sync
 
@@ -18,6 +18,12 @@ gh api repos/sschmitt-cg/project-template/contents/.claude/commands/next-step.md
 Fetch and overwrite the local copy:
 ```
 gh api repos/sschmitt-cg/project-template/contents/.claude/commands/auto-build.md --jq '.content' | base64 -d
+```
+
+### 3b. .claude/commands/test-companion.md
+Fetch and overwrite the local copy:
+```
+gh api repos/sschmitt-cg/project-template/contents/.claude/commands/test-companion.md --jq '.content' | base64 -d
 ```
 
 ### 4. One-time stub files
@@ -117,9 +123,10 @@ If `.gitignore` does not contain `.claude/settings.json`, append it.
 If `.gitignore` does not contain `.claude/settings.local.json`, append it.
 If `.gitignore` does not contain `.build/`, append it.
 
-**Untrack if currently committed:** After updating `.gitignore`, check both files:
+**Untrack if currently committed:** After updating `.gitignore`, check each:
 - Run `git ls-files .claude/settings.json` — if non-empty, run `git rm --cached .claude/settings.json`
 - Run `git ls-files .claude/settings.local.json` — if non-empty, run `git rm --cached .claude/settings.local.json`
+- Run `git ls-files ".build/"` — if non-empty, run `git rm -r --cached ".build/"`
 
 Include any staged removals in the same sync commit below — do NOT create a separate branch or PR for them.
 
@@ -154,6 +161,29 @@ If `BACKLOG.md` does not exist, create it with this content:
 
 Do not inject if the item already exists anywhere in BACKLOG.md (check for "Set up test infrastructure" before inserting).
 
+## .build/ migration
+
+These files are gitignored and local-only — no commit is needed for them.
+
+If `.build/BUILD_QUESTIONS.md` exists locally and has an "Open Questions" section
+with items, and `.build/OPEN_QUESTIONS.md` does not exist:
+- Read the Open Questions section from BUILD_QUESTIONS.md
+- Create `.build/OPEN_QUESTIONS.md` with those items in the Unresolved section and
+  an empty Resolved section
+- Append `[Migrated to .build/OPEN_QUESTIONS.md]` to the Open Questions section of
+  BUILD_QUESTIONS.md so the session artifact reflects where they went
+
+If `.build/BUILD_SUMMARY.md` exists locally, `.build/BUILD_QUESTIONS.md` had no
+open questions (or did not exist), and `.build/OPEN_QUESTIONS.md` does not exist:
+- Extract the "Open Questions" section from BUILD_SUMMARY.md instead and create
+  `.build/OPEN_QUESTIONS.md` the same way
+
+If `.build/BUILD_SUMMARY.md` exists locally and has an "End-to-End Test Plan"
+section with items, and `.build/TEST_TRACKER.md` does not exist:
+- Extract that section from BUILD_SUMMARY.md
+- Create `.build/TEST_TRACKER.md` with those items in the Pending section and an
+  empty Completed section
+
 ## What NOT to sync
 
 Do not touch:
@@ -184,4 +214,4 @@ If changes are detected:
    Check for an existing open PR on this branch with `gh pr list --head chore/sync-template --state open` — if one exists, skip creating a new PR and report the existing URL instead.
 6. Re-write `.claude/settings.json` to disk using the content built in step 5f — even if it still exists, write it again. If `git rm --cached` was run earlier, a `git pull` during this session will delete the file when the commit is applied; writing it here ensures it is present as a properly gitignored, untracked local file before handing back to the user.
 
-Note: `.claude/settings.json` is gitignored and will not appear in `git status`. If it was the only file that changed, the status check above will show no tracked changes — report that settings.json was rebuilt locally and no commit is needed.
+Note: `.claude/settings.json` is gitignored and will not appear in `git status`. If it was the only file that changed, the status check above will show no tracked changes — report that settings.json was rebuilt locally and no commit is needed. Similarly, any files created by the `.build/` migration above are gitignored and will not appear in `git status`.
