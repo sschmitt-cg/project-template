@@ -52,8 +52,10 @@ Before presenting the proposal, check for pending items from prior builds:
 - Run `ls .build/OPEN_QUESTIONS.md 2>/dev/null || echo absent` — if present, read
   the file and count Unresolved items. **Hold this count** — Step 10 will compare
   against it to detect any new questions added during implementation.
-- Run `ls .build/TEST_TRACKER.md 2>/dev/null || echo absent` — if present, count
-  items in the Pending section
+- Run `ls .build/TEST_TRACKER.md 2>/dev/null || echo absent` — if present, first
+  run the "Pre-step — Sweep externally-checked items" procedure defined at the
+  top of `.claude/commands/test-companion.md` to move any `- [x]` entries from
+  Pending to Completed, then count items in the Pending section
 
 If either has content, include a brief note alongside the proposal:
 > "Note: X open questions and Y pending tests remain from prior builds.
