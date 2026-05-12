@@ -133,17 +133,21 @@ Write the result to `.claude/settings.json`.
 
 ## .gitignore — ensure template files are excluded
 
-`settings.json`, `settings.local.json`, and `.build/` are never committed. Verify `.gitignore` has entries for all three.
+`settings.json`, `settings.local.json`, `.build/`, `INBOX.md`, and `SCRATCH.md` are never committed. Verify `.gitignore` has entries for all five.
 
 If `.gitignore` does not exist, create it.
 If `.gitignore` does not contain `.claude/settings.json`, append it.
 If `.gitignore` does not contain `.claude/settings.local.json`, append it.
 If `.gitignore` does not contain `.build/`, append it.
+If `.gitignore` does not contain `INBOX.md`, append it.
+If `.gitignore` does not contain `SCRATCH.md`, append it.
 
 **Untrack if currently committed:** After updating `.gitignore`, check each:
 - Run `git ls-files .claude/settings.json` — if non-empty, run `git rm --cached .claude/settings.json`
 - Run `git ls-files .claude/settings.local.json` — if non-empty, run `git rm --cached .claude/settings.local.json`
 - Run `git ls-files ".build/"` — if non-empty, run `git rm -r --cached ".build/"`
+- Run `git ls-files INBOX.md` — if non-empty, run `git rm --cached INBOX.md`
+- Run `git ls-files SCRATCH.md` — if non-empty, run `git rm --cached SCRATCH.md`
 
 Include any staged removals in the same sync commit below — do NOT create a separate branch or PR for them.
 

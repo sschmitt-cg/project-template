@@ -16,8 +16,10 @@ exist with unresolved content:
 
 - Run `ls .build/OPEN_QUESTIONS.md 2>/dev/null || echo absent` — if present, read
   the Unresolved section and count items
-- Run `ls .build/TEST_TRACKER.md 2>/dev/null || echo absent` — if present, read
-  the Pending section and count items
+- Run `ls .build/TEST_TRACKER.md 2>/dev/null || echo absent` — if present, first
+  run the "Pre-step — Sweep externally-checked items" procedure defined at the
+  top of `.claude/commands/test-companion.md` to move any `- [x]` entries from
+  Pending to Completed, then read the Pending section and count items
 
 If either has content, report the count to the user:
 > "X open questions and Y pending tests remain from a prior build."
