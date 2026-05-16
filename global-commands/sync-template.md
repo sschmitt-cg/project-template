@@ -4,16 +4,16 @@ Pull the latest shared files from the project template repo (sschmitt-cg/project
 
 Before making any file edits, ensure you are on a clean sync branch:
 
-1. Confirm the current branch is `main` (run `git branch --show-current`). If not, stop and tell the user.
+1. Confirm the current branch is `dev` (run `git branch --show-current`). If not, run `git checkout dev` and `git pull`; if `dev` does not exist locally or remotely, stop and tell the user.
 2. Check whether `chore/sync-template` already exists:
    - Run `git branch --list chore/sync-template` (local)
    - Run `git branch -r --list origin/chore/sync-template` (remote)
 3. If it exists locally or remotely:
-   - If it exists locally, run `git checkout chore/sync-template` then `git reset --hard main`
-   - If it only exists remotely (not locally), run `git checkout -b chore/sync-template main`
+   - If it exists locally, run `git checkout chore/sync-template` then `git reset --hard dev`
+   - If it only exists remotely (not locally), run `git checkout -b chore/sync-template dev`
 4. If it does not exist anywhere, run `git checkout -b chore/sync-template`
 
-All file edits below are made on this branch, not on `main`.
+All file edits below are made on this branch, not on `dev`.
 
 ---
 
@@ -37,13 +37,13 @@ Fetch and overwrite the local copy:
 gh api repos/sschmitt-cg/project-template/contents/.claude/commands/auto-build.md --jq '.content' | base64 -d
 ```
 
-### 3b. .claude/commands/test-companion.md
+### 4. .claude/commands/test-companion.md
 Fetch and overwrite the local copy:
 ```
 gh api repos/sschmitt-cg/project-template/contents/.claude/commands/test-companion.md --jq '.content' | base64 -d
 ```
 
-### 4. One-time stub files
+### 5. One-time stub files
 
 These files should exist in every project but contain project-specific content — create them only if absent; never overwrite.
 
@@ -69,21 +69,21 @@ gh api repos/sschmitt-cg/project-template/contents/docs/user-guide.md --jq '.con
 gh api repos/sschmitt-cg/project-template/contents/docs/admin-guide.md --jq '.content' | base64 -d
 ```
 
-### 5. .claude/settings.json — rebuild from template files
+### 6. .claude/settings.json — rebuild from template files
 
 `settings.json` is gitignored and never committed. This step is the authoritative source for what goes in it.
 
-#### 5a. Determine the project path
+#### 6a. Determine the project path
 Run `git rev-parse --show-toplevel` and store the result as PROJECT_PATH.
 
-#### 5b. Fetch the template files
+#### 6b. Fetch the template files
 Fetch each of the following from the template repo:
 ```
 gh api repos/sschmitt-cg/project-template/contents/.claude/settings-template/universal.json --jq '.content' | base64 -d
 gh api repos/sschmitt-cg/project-template/contents/.claude/settings-template/project.json --jq '.content' | base64 -d
 ```
 
-#### 5c. Substitute placeholders
+#### 6c. Substitute placeholders
 In project.json, replace every occurrence of `{{PROJECT_PATH}}` with the actual PROJECT_PATH value before reading any allow entries from it.
 
 Also compute `PROJECT_PATH_ESCAPED` by replacing every space in PROJECT_PATH with `\ ` (backslash-space). For example, if PROJECT_PATH is `/Users/scott/Documents/Code Projects/myapp`, then PROJECT_PATH_ESCAPED is `/Users/scott/Documents/Code\ Projects/myapp`.
@@ -92,7 +92,7 @@ For each `Bash(...)` allow entry in the substituted project.json and stack files
 - Remove the double-quotes that surround the quoted segment containing PROJECT_PATH
 - Replace the PROJECT_PATH portion within that segment with PROJECT_PATH_ESCAPED
 
-These parallel entries are collected alongside the originals in step 5e. Skip this for `Read(...)` entries — the Read tool receives the raw file path directly, not a shell string, so no escaping is needed.
+These parallel entries are collected alongside the originals in step 6e. Skip this for `Read(...)` entries — the Read tool receives the raw file path directly, not a shell string, so no escaping is needed.
 
 Examples (PROJECT_PATH = `/Users/scott/Code Projects/myapp`):
 
@@ -104,7 +104,7 @@ Examples (PROJECT_PATH = `/Users/scott/Code Projects/myapp`):
 | `Bash("/Users/scott/Code Projects/myapp/venv/bin/python" *)` | `Bash(/Users/scott/Code\ Projects/myapp/venv/bin/python *)` |
 | `Bash(cd "/Users/scott/Code Projects/myapp")` | `Bash(cd /Users/scott/Code\ Projects/myapp)` |
 
-#### 5d. Clean up the existing settings.json (if it exists)
+#### 6d. Clean up the existing settings.json (if it exists)
 Read files in the target project using `cat "PROJECT_PATH/..."` via Bash — not the Read tool. The Read tool prompts for permission on files outside the current project directory; `cat` is auto-allowed.
 
 Read the current `permissions.allow` array. Remove any entry that matches either of these conditions:
@@ -113,20 +113,20 @@ Read the current `permissions.allow` array. Remove any entry that matches either
 
 Keep all remaining entries.
 
-#### 5e. Compose the final allow list
+#### 6e. Compose the final allow list
 Collect `permissions.allow` entries from:
 - universal.json
-- project.json (after placeholder substitution and escaped-path variants from step 5c)
-- The surviving entries from the cleanup in 5d
+- project.json (after placeholder substitution and escaped-path variants from step 6c)
+- The surviving entries from the cleanup in 6d
 
 For each source above, interleave the escaped-path variant immediately after its original entry (e.g., the escaped `git -C PROJECT_PATH_ESCAPED add *` entry follows the quoted `git -C "PROJECT_PATH" add *` entry).
 
 Deduplicate, preserving order (universal first, then project, then surviving existing).
 
-#### 5f. Write settings.json
+#### 6f. Write settings.json
 Build the final settings.json as follows:
 - Start with the structure from universal.json (this provides the `hooks` and top-level shape)
-- Set `permissions.allow` to the composed list from 5e
+- Set `permissions.allow` to the composed list from 6e
 - If the existing settings.json has keys other than `permissions` and `hooks` (e.g., `additionalDirectories`), preserve them
 
 Write the result to `.claude/settings.json`.
@@ -151,7 +151,7 @@ If `.gitignore` does not contain `SCRATCH.md`, append it.
 
 Include any staged removals in the same sync commit below — do NOT create a separate branch or PR for them.
 
-### 6. Test infrastructure check
+## Test infrastructure check
 
 Check whether the project has a test runner configured. At least one of these must be true:
 
@@ -205,6 +205,58 @@ section with items, and `.build/TEST_TRACKER.md` does not exist:
 - Create `.build/TEST_TRACKER.md` with those items in the Pending section and an
   empty Completed section
 
+## Scottsidian vault check
+
+Ensure this project is registered in the Scottsidian vault. Vault writes happen outside the project repo and are NOT included in the sync PR — handle them inline after user confirmation.
+
+1. Compute the repo name: `basename "$(git rev-parse --show-toplevel)"`.
+2. Search for a matching vault file in one command:
+   ```
+   grep -l "^repo: <name>$" ~/Documents/Scottsidian/Projects/*.md 2>/dev/null
+   ```
+3. **Exactly one match:** Report the file path to the user (e.g., `Vault file: ~/Documents/Scottsidian/Projects/Tonal Explorer.md`). Take no further action.
+4. **Multiple matches:** Report all matches and ask the user to dedupe — only one vault file should reference a given `repo:`.
+5. **No match:** Ask the user: `No Scottsidian vault file references this repo (<name>). Create one now? (y/n)`
+   - **No:** Skip silently.
+   - **Yes:**
+     a. Read `~/Documents/Scottsidian/CLAUDE.md` to confirm the current frontmatter schema (in case it has changed since this command was written).
+     b. Ask for these fields (offer defaults where reasonable):
+        - `name` — human-readable project name (default: titlecased repo name)
+        - `status` — `active` / `interesting` / `shelved` / `fun` / `discarded` (default: `active`)
+        - `horizon` — `short-term` / `long-term` / `ongoing` (active only)
+        - `priority` — `high` / `medium` / `low`
+        - `income-potential` — `high` / `medium` / `low` / `none`
+        - `tags` — comma-separated list
+     c. Construct the file content using the schema and ask the user to confirm before writing:
+        ```yaml
+        ---
+        name: <Project Name>
+        status: <status>
+        horizon: <horizon>
+        priority: <priority>
+        income-potential: <income-potential>
+        tags: [<tag1>, <tag2>]
+        repo: <repo name>
+        last-updated: <today YYYY-MM-DD>
+        ---
+
+        # <Project Name>
+
+        [Brief one-paragraph summary. If docs/project-vision.md exists, propose a summary based on it; otherwise leave a stub.]
+
+        ## Status
+
+        [Where the project is right now.]
+
+        ## Near-term goals
+
+        - [What's next]
+        ```
+     d. Write to `~/Documents/Scottsidian/Projects/<Project Name>.md`.
+     e. Update `~/Documents/Scottsidian/_Index.md`: add a row to the table matching the project's status grouping. Use the existing table column structure as the model (Project / Horizon / Priority / Income Potential / Next Step or Notes). For `status: active, horizon: short-term`, that's the 🟢 Active — Short-term focus table. Confirm the proposed _Index edit before writing.
+
+---
+
 ## What NOT to sync
 
 Do not touch:
@@ -224,11 +276,12 @@ Check for changes with `git status`. If there are no changes, report that everyt
 If changes are detected:
 1. Stage the changed files
 2. Commit with the message: `chore: sync from project-template`
-3. Push the branch. If the branch was reset to main earlier (i.e., it already existed), use `--force-with-lease`. Otherwise use a plain push.
-4. Open a PR targeting `main` with:
+3. Push the branch. If the branch was reset to dev earlier (i.e., it already existed), use `--force-with-lease`. Otherwise use a plain push.
+4. Open a PR targeting `dev` with:
    - Title: `chore: sync from project-template`
    - Body listing which files changed and a note that this was generated by `/sync-template`
+   - Use `gh pr create --base dev`
    Check for an existing open PR on this branch with `gh pr list --head chore/sync-template --state open` — if one exists, skip creating a new PR and report the existing URL instead.
-5. Re-write `.claude/settings.json` to disk using the content built in step 5f — even if it still exists, write it again. If `git rm --cached` was run earlier, a `git pull` during this session will delete the file when the commit is applied; writing it here ensures it is present as a properly gitignored, untracked local file before handing back to the user.
+5. Re-write `.claude/settings.json` to disk using the content built in step 6f — even if it still exists, write it again. If `git rm --cached` was run earlier, a `git pull` during this session will delete the file when the commit is applied; writing it here ensures it is present as a properly gitignored, untracked local file before handing back to the user.
 
 Note: `.claude/settings.json` is gitignored and will not appear in `git status`. If it was the only file that changed, the status check above will show no tracked changes — report that settings.json was rebuilt locally and no commit is needed. Similarly, any files created by the `.build/` migration above are gitignored and will not appear in `git status`.
