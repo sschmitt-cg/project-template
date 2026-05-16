@@ -3,12 +3,13 @@
 Guide the user through a structured launch session for a new project, or kick off work
 in a project repo that was already scaffolded from the template. By the end of this
 command, the project will have a vision doc, architecture doc, and backlog; optionally,
-a GitHub repo will be created and cloned locally; the folder will be scaffolded with
-all standard files; and the project will be registered in `PROJECTS.md` if applicable.
+a GitHub repo will be created and cloned locally with both `main` and `dev` branches;
+the folder will be scaffolded with all standard files; and the project will be
+registered in the Scottsidian vault.
 
 **Default project location:** `/Users/scottschmitt/Documents/code-projects`
 **Template source:** `/Users/scottschmitt/Documents/code-projects/project-template`
-**Project registry:** `/Users/scottschmitt/Documents/Claude/Projects/Project Planning and Process/PROJECTS.md`
+**Project registry:** `~/Documents/Scottsidian/Projects/` (one file per project, with frontmatter per the vault's schema)
 
 Work conversationally. Do not present all questions as a list — ask a few at a time,
 listen, and build on what the user shares. The goal is a real discovery conversation,
@@ -40,9 +41,10 @@ If in existing repo mode, check which of `docs/project-vision.md`,
 `docs/architecture.md`, and `BACKLOG.md` already exist and are populated (not stubs).
 A stub contains the marker `> **Template:**`. A file that does not exist is not populated.
 
-**Is PROJECTS.md accessible?**
-Try to read `/Users/scottschmitt/Documents/Claude/Projects/Project Planning and Process/PROJECTS.md`.
-Set a flag `projects_md_accessible` based on whether the file exists and is readable.
+**Is the Scottsidian vault accessible?**
+Try to list `~/Documents/Scottsidian/Projects/`. Set a flag `scottsidian_accessible`
+based on whether the directory exists. Also read `~/Documents/Scottsidian/CLAUDE.md`
+to confirm the current frontmatter schema for new project files.
 
 With these flags set, proceed to Phase 1.
 
@@ -227,9 +229,8 @@ Check whether `CLAUDE.md` exists in the repo root:
 - If it **does not exist**, ask: "There's no CLAUDE.md in this repo — do you want to
   copy in the standard one from the project template?" Copy it if they confirm. Source:
   `/Users/scottschmitt/Documents/code-projects/project-template/CLAUDE.md`. If that
-  file is not found, fall back to:
-  `/Users/scottschmitt/Documents/Claude/Projects/Project Planning and Process/templates/CLAUDE.md`
-  and warn the user that the project-template folder may not be set up.
+  file is not found, stop and tell the user — the project-template folder is the
+  canonical source.
 
 **Write the confirmed documents**
 Write only the docs that were confirmed in Phase 2 (`docs/project-vision.md`,
@@ -245,13 +246,23 @@ git commit -m "docs: update project docs"
 Use a more specific commit message if the scope is clear (e.g., `docs: regenerate
 vision doc and backlog`). Do not commit files that were kept unchanged.
 
-**PROJECTS.md registration**
-If `projects_md_accessible` is true, ask: "Should I register this project in
-PROJECTS.md?" If yes, add a new row with the name, description, GitHub URL (if known),
-status (`Active`), and start date. Confirm this edit with the user before writing,
-per the firm document protection rule.
+**Scottsidian registration**
+If `scottsidian_accessible` is true, first check whether this project is already in the vault:
+- Compute the repo name: `basename "$(git rev-parse --show-toplevel)"`.
+- Run `grep -l "^repo: <name>$" ~/Documents/Scottsidian/Projects/*.md 2>/dev/null`.
 
-If `projects_md_accessible` is false, skip this step silently.
+**Exactly one match:** Report the file path and stop — no action needed.
+
+**Multiple matches:** Report all matches and ask the user to dedupe — only one vault file should reference a given `repo:`.
+
+**No match:** Ask: "Should I register this project in the Scottsidian vault?" If yes:
+- Read `~/Documents/Scottsidian/CLAUDE.md` to confirm the current frontmatter schema.
+- Gather: `name`, `status` (default `active`), `horizon` (ask), `priority` (ask), `income-potential` (ask), `tags`, `repo` (= repo dir name), `last-updated` (today).
+- Confirm the proposed file content with the user before writing.
+- Write `~/Documents/Scottsidian/Projects/<Project Name>.md`.
+- Update `~/Documents/Scottsidian/_Index.md` to add the project under the table matching its status grouping. Confirm the _Index edit before writing.
+
+If `scottsidian_accessible` is false, skip this step silently.
 
 ### If this is a new project
 
@@ -307,15 +318,14 @@ Copy the standard `CLAUDE.md` from the project template into the root of the new
 unless the user explicitly says they don't want it. Source:
 `/Users/scottschmitt/Documents/code-projects/project-template/CLAUDE.md`
 
-If that file is not found, fall back to:
-`/Users/scottschmitt/Documents/Claude/Projects/Project Planning and Process/templates/CLAUDE.md`
-and warn the user that the project-template folder may not be set up.
+If that file is not found, stop and tell the user — the project-template folder is the
+canonical source for new projects.
 
 **Step 6 — Write the generated documents**
 Write the confirmed `docs/project-vision.md`, `docs/architecture.md`, and `BACKLOG.md`
 to the new repo.
 
-**Step 7 — Initial commit**
+**Step 7 — Initial commit on main**
 ```
 git add BACKLOG.md INBOX.md SCRATCH.md docs/project-vision.md docs/architecture.md .claude/
 git commit -m "init: project scaffold and vision docs"
@@ -324,28 +334,57 @@ git push
 If CLAUDE.md was included (Step 5), add it to the `git add` line. If it was skipped,
 omit it.
 
-**Step 8 — Register the project**
-If `projects_md_accessible` is true, add a new row to `PROJECTS.md` in the Project
-Planning and Process folder with the name, description, GitHub URL, status (`Active`),
-and start date. Confirm this edit with the user before writing, per the firm document
-protection rule.
+**Step 8 — Create the `dev` branch**
 
-If `projects_md_accessible` is false, skip this step silently.
+Feature/fix branches in the standard workflow target `dev` (not `main`), so `dev`
+must exist before `/next-step` or `/auto-build` can run. From `main`:
+```
+git checkout -b dev
+git push -u origin dev
+git checkout main
+```
+Optionally, set `dev` as the default base for new PRs in the GitHub repo settings
+(not automated here — mention to the user).
+
+**Step 9 — Register the project in Scottsidian**
+If `scottsidian_accessible` is true, first check for an existing vault entry (a brand-new repo shouldn't have one, but verify to avoid duplicates):
+- Compute the repo name: `basename "$(git rev-parse --show-toplevel)"`.
+- Run `grep -l "^repo: <name>$" ~/Documents/Scottsidian/Projects/*.md 2>/dev/null`.
+
+If a match is found, report it and stop. Otherwise:
+- Read `~/Documents/Scottsidian/CLAUDE.md` to confirm the current frontmatter schema.
+- Gather: `name`, `status` (default `active`), `horizon` (ask), `priority` (ask), `income-potential` (ask), `tags`, `repo` (= repo dir name), `last-updated` (today).
+- Confirm the proposed file content with the user before writing.
+- Write `~/Documents/Scottsidian/Projects/<Project Name>.md`.
+- Update `~/Documents/Scottsidian/_Index.md` to add the project under the table matching its status grouping. Confirm the _Index edit before writing.
+
+If `scottsidian_accessible` is false, skip this step silently.
 
 ---
 
 ## Phase 4: Handoff
 
 **If this was a new project:**
-Tell the user:
-- The local path where the repo was cloned
-- That they can open this folder in VS Code to begin development
-- That `/next-step` is available in Claude Code for driving development sessions
-- That ideas can be routed to `INBOX.md` at any time via the Apple Notes inbox workflow
+
+The repo currently has CLAUDE.md, INBOX.md, SCRATCH.md, and the generated docs — but
+no command files or settings yet. Tell the user:
+
+1. **First, run `/sync-template`** in the new project directory. This installs `.claude/commands/next-step.md`, `.claude/commands/auto-build.md`, `.claude/commands/test-companion.md`, builds `.claude/settings.json` from the template, and configures `.gitignore`. The project commands are not available until this runs.
+2. The local path where the repo was cloned.
+3. That both `main` and `dev` branches now exist; feature work targets `dev`.
+4. They can open the folder in VS Code to begin development.
+5. After `/sync-template`, these commands become available:
+   - `/next-step` — single-task development sessions
+   - `/auto-build` — multi-item autonomous builds across a backlog phase
+   - `/test-companion` — interactive walkthrough of pending tests and open questions
+6. Ideas can be routed to `INBOX.md` at any time via the Apple Notes inbox workflow.
 
 **If this was an existing repo:**
-Confirm which docs were updated (or note if none were changed). Remind the user that
-`/next-step` is available whenever they're ready to start a development session.
+Confirm which docs were updated (or note if none were changed). If the project's
+`.claude/commands/` directory is missing any of `next-step.md`, `auto-build.md`, or
+`test-companion.md`, recommend running `/sync-template`. Otherwise, remind the user
+that `/next-step`, `/auto-build`, `/test-companion`, and `/sync-template` are
+available.
 
 ---
 
