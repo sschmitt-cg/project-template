@@ -22,8 +22,8 @@ Check these sources in priority order, **stopping as soon as one yields a clear 
 
 1. **Open PRs** — run `gh pr list --state open`. If any PR has unresolved CI
    failures, treat fixing those failures as the task: skip to Step 4 using that
-   PR's branch, then in Step 5 write a session-plan whose `Verify:` condition is
-   "all CI checks pass on PR #<n>" and run the pipeline (Step 5). Stop here.
+   PR's branch, with a done-condition of "all CI checks pass on PR #<n>", and run
+   the pipeline (Step 5). Stop here.
 2. **Open GitHub issues** — run `gh issue list --state open`. If any exist,
    the highest-priority issue is the task. Stop here.
 3. **`BACKLOG.md`** — only if no open issues. Prefer items near the top of
@@ -67,11 +67,16 @@ Present the proposed task (or 3 options) to the user in a short paragraph:
 - What the task is
 - Why it is the right next step (which audience or principle it serves)
 - Rough scope (a few hours? a day?)
+- **Done when:** the concrete, observable condition that will be true when the
+  task is complete (e.g., "PR is open, all CI checks pass, and the feature behaves
+  as described"). State it here so a single confirmation covers both the task and
+  its done-condition — Step 5 does not ask again.
 
 **Stop here and wait for explicit confirmation before writing any code,
 creating any branch, or running any commands.**
 
-If the user modifies the proposal, confirm the adjusted scope before proceeding.
+If the user modifies the proposal or the done-condition, confirm the adjusted
+scope before proceeding.
 
 ---
 
@@ -103,37 +108,31 @@ Never create a branch from any base other than an up-to-date dev.
 
 Once the user confirms and the branch is resolved:
 
-**5a. Write `.build/session-plan.md`** (create the `.build/` directory if it does not exist):
+**5a. Write the session anchor**
+
+Write a minimal `.build/session-plan.md` (create the `.build/` directory if it
+does not exist) so the task and its done-condition survive any context compaction
+during a long pipeline run:
 
 ```
 Task: [one sentence]
-Approach: [2–3 sentences on implementation strategy]
-Key files: [list files most relevant to this task]
-Open questions: [any unresolved questions, or "none"]
-Verify: [a concrete, observable condition that is true when this task is complete — e.g., "PR is open, all CI checks pass, and the feature behaves as described in the task"]
+Done when: [the done-condition confirmed in Step 3]
 ```
 
-**5b. Confirm the goal condition**
+No separate confirmation step — the task and done-condition were already confirmed
+in Step 3. Go straight to the pipeline.
 
-Present the `Verify:` field from `.build/session-plan.md` to the user:
-
-> "Here's the goal condition I'll use to know when this task is done:
-> [Verify: contents]
-> Does this correctly capture done? Adjust if needed."
-
-Update `.build/session-plan.md` if the user refines it.
-
-**5c. Run the pipeline inline**
+**5b. Run the pipeline inline**
 
 Execute the following 10-step sequence directly in this session, as your own
 orchestration checklist. You are the orchestrator — run each step yourself, in
 order. Do not hand off to another command (`/goal` cannot be invoked by an
-orchestrating agent). Substitute `[Verify: contents]` from session-plan.md where
-referenced.
+orchestrating agent). Use the `Done when` line from session-plan.md as the
+completion criterion.
 
 1. Read CLAUDE.md, docs/architecture.md, and docs/project-vision.md before any code changes.
 2. Run typecheck, lint, and tests (per CLAUDE.md) to establish a clean baseline.
-3. Implement per the Approach in session-plan.md. Follow commit conventions from CLAUDE.md.
+3. Implement the task confirmed in Step 3. Follow commit conventions from CLAUDE.md.
 4. Re-run typecheck, lint, and tests; fix any failures introduced.
 5. Update BACKLOG.md (check off completed items, add emergent ones); update docs/project-vision.md or docs/architecture.md if new principles or constraints were established; append any unresolvable open questions to .build/OPEN_QUESTIONS.md (Unresolved section) with question, default used, revisit condition, and today's date.
 6. If user-visible behavior changed and docs/user-guide.md is populated (no "> **Template:**" marker), update it. Same check for docs/admin-guide.md if config/env/deployment changed. README.md if commands or structure changed.
@@ -144,7 +143,7 @@ referenced.
 
 Stop and return control to the user any time a step requires a decision you cannot resolve autonomously.
 
-Done when: [Verify: contents from session-plan.md] — this is your self-checked completion criterion.
+Done when: the `Done when` condition from session-plan.md is met — this is your self-checked completion criterion.
 
 > Optional: for a long, unattended build you may instead paste this same numbered
 > sequence into the built-in `/goal` command yourself, to get a Stop-hook
