@@ -151,10 +151,7 @@ Create `.build/BUILD_SUMMARY.md`:
 ## Status: In Progress
 
 ## Items Completed
-[Populated as each item merges.]
-
-## Items Remaining
-[Full sequence from BUILD_PLAN.md — items removed as they complete.]
+[Populated as each item merges. Remaining items = BUILD_PLAN.md sequence minus these.]
 
 ## Key Decisions
 [Populated as the build proceeds — one entry per decision made, in sequence.]
@@ -237,6 +234,10 @@ this session as your own orchestration checklist, with these per-item adjustment
   it to `.build/OPEN_QUESTIONS.md` (Unresolved section) with question, default used,
   revisit condition, and today's date.
 - **BACKLOG:** mark the item complete as part of step 5 of the pipeline.
+
+Where the referenced pipeline says "the task confirmed in Step 3", "the approval
+given in Step 3", or "session-plan.md", substitute the deltas above (this item's
+BUILD_PLAN.md entry, the Phase 1 approval, and the standard done-condition).
 
 Stop and return control to the user any time a step requires a decision you cannot
 resolve autonomously.

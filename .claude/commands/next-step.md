@@ -2,9 +2,10 @@
 
 You are an orchestrator. Your job is to identify the single best next piece of
 work for this project, confirm it with the user, then run the full pipeline
-autonomously: implement → review → open PR → monitor CI. The only gate that
-requires user input is the initial task confirmation (Step 3). Everything after
-that runs straight through unless a decision is needed that you cannot resolve.
+autonomously: implement → review → open PR → monitor CI. The only planned gate
+that requires user input is the initial task confirmation (Step 3); Step 4 may ask
+once if multiple candidate branches exist. Everything after that runs straight
+through unless a decision is needed that you cannot resolve.
 
 ---
 
@@ -82,6 +83,9 @@ Present the proposed task (or 3 options) to the user in a short paragraph:
   so the pipeline can make them without pausing again (this is the explicit
   approval the firm-document-protection rule in CLAUDE.md requires).
 
+When presenting 3 options, give What/Why/Scope per option; state Done-when and
+Firm-doc edits only for the option the user selects, then proceed.
+
 **Stop here and wait for explicit confirmation before writing any code,
 creating any branch, or running any commands.**
 
@@ -92,7 +96,10 @@ scope before proceeding.
 
 ## Step 4 — Resolve or create the working branch
 
-Before creating any branch, check for an existing one:
+If Step 2 already identified a specific branch (the CI-fix path), check it out
+directly (`git checkout <branch>`) and skip the discovery below.
+
+Otherwise, check for an existing branch before creating one:
 
 1. Run `git branch --show-current` — if not on `main` or `dev`, you are already on a
    working branch; use it.
@@ -144,7 +151,7 @@ orchestrating agent).
 2. Run typecheck, lint, and tests (per CLAUDE.md) to establish a clean baseline.
 3. Implement the task confirmed in Step 3. Follow commit conventions from CLAUDE.md.
 4. Re-run typecheck, lint, and tests; fix any failures introduced.
-5. Update BACKLOG.md (check off completed items, add emergent ones) and docs/project-vision.md or docs/architecture.md if new principles or constraints were established — these firm-protected edits proceed under the approval given in Step 3; pause and confirm only for a firm-doc change not anticipated there. Append any unresolvable open questions to .build/OPEN_QUESTIONS.md (Unresolved section) with question, default used, revisit condition, and today's date.
+5. Update BACKLOG.md (check off completed items, add emergent ones) and docs/project-vision.md or docs/architecture.md if new principles or constraints were established — these firm-protected edits proceed under the approval given in Step 3; pause and confirm only for a firm-doc change not anticipated there. Append any unresolvable open questions to .build/OPEN_QUESTIONS.md (Unresolved section) with question, default used, revisit condition, and today's date — creating the file with `## Unresolved` and `## Resolved` sections first if it does not exist.
 6. If user-visible behavior changed and docs/user-guide.md is populated (no "> **Template:**" marker), update it. Same check for docs/admin-guide.md if config/env/deployment changed. README.md if commands or structure changed.
 7. Spawn a review sub-agent: it reads docs/architecture.md and every changed file, checks for violations of CLAUDE.md and architecture.md constraints. Fix autonomously for clear rule violations or mechanical style; stop and ask the user only for genuine design decisions. Up to 5 rounds, with each follow-up scoped to files changed in the prior round.
 8. Spawn a security sub-agent: it reads every changed file and checks for exposed secrets/credentials, injection vulnerabilities (SQL, shell, XSS, path traversal), sensitive data in logs or error responses, insecure defaults (disabled TLS, permissive CORS, missing auth), and known CVEs (npm audit / pip-audit). Fix autonomously where the correct fix is unambiguous; stop and ask the user otherwise.
