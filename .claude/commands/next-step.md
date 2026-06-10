@@ -23,7 +23,7 @@ Check these sources in priority order, **stopping as soon as one yields a clear 
 1. **Open PRs** — run `gh pr list --state open`. If any PR has unresolved CI
    failures, treat fixing those failures as the task: skip to Step 4 using that
    PR's branch, then in Step 5 write a session-plan whose `Verify:` condition is
-   "all CI checks pass on PR #<n>" and run `/goal`. Stop here.
+   "all CI checks pass on PR #<n>" and run the pipeline (Step 5). Stop here.
 2. **Open GitHub issues** — run `gh issue list --state open`. If any exist,
    the highest-priority issue is the task. Stop here.
 3. **`BACKLOG.md`** — only if no open issues. Prefer items near the top of
@@ -99,7 +99,7 @@ Never create a branch from any base other than an up-to-date dev.
 
 ---
 
-## Step 5 — Hand off to `/goal`
+## Step 5 — Run the build pipeline
 
 Once the user confirms and the branch is resolved:
 
@@ -123,15 +123,14 @@ Present the `Verify:` field from `.build/session-plan.md` to the user:
 
 Update `.build/session-plan.md` if the user refines it.
 
-**5c. Invoke /goal**
+**5c. Run the pipeline inline**
 
-`/goal` is a Stop-hook wrapper — after each turn, a fast evaluator checks the condition against the conversation transcript. It does not add orchestration; the agent runs whatever the condition tells it to run. So bundle the full sequence into the condition itself.
+Execute the following 10-step sequence directly in this session, as your own
+orchestration checklist. You are the orchestrator — run each step yourself, in
+order. Do not hand off to another command (`/goal` cannot be invoked by an
+orchestrating agent). Substitute `[Verify: contents]` from session-plan.md where
+referenced.
 
-Run `/goal` with this template (substitute `[Verify: contents]` from session-plan.md):
-
-```
-/goal Implement and ship the task described in .build/session-plan.md.
-Sequence:
 1. Read CLAUDE.md, docs/architecture.md, and docs/project-vision.md before any code changes.
 2. Run typecheck, lint, and tests (per CLAUDE.md) to establish a clean baseline.
 3. Implement per the Approach in session-plan.md. Follow commit conventions from CLAUDE.md.
@@ -145,12 +144,14 @@ Sequence:
 
 Stop and return control to the user any time a step requires a decision you cannot resolve autonomously.
 
-Done when: [Verify: contents from session-plan.md]
+Done when: [Verify: contents from session-plan.md] — this is your self-checked completion criterion.
 
-Stop after 40 turns if the condition has not been met.
-```
+> Optional: for a long, unattended build you may instead paste this same numbered
+> sequence into the built-in `/goal` command yourself, to get a Stop-hook
+> completion guard that re-checks the done condition after each turn. This is a
+> manual fallback only — the orchestrator does not invoke `/goal`.
 
-When the goal clears (condition met or turn cap hit), proceed to Step 6.
+When the pipeline completes (done condition met), proceed to Step 6.
 
 ---
 
@@ -164,7 +165,7 @@ When the goal clears (condition met or turn cap hit), proceed to Step 6.
 - If any changed file touches config, environment variables, or deployment and
   `docs/admin-guide.md` still contains the stub marker: same.
 - If the guide docs are already populated, they were updated during the
-  `/goal`-driven implementation in Step 5 — no action needed here.
+  pipeline run in Step 5 — no action needed here.
 - If neither condition applies (pure refactor, tooling, infrastructure): skip.
 
 Mention any stub docs that need a dedicated pass alongside the PR URL and let the

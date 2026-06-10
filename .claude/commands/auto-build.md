@@ -248,15 +248,14 @@ Present the `Verify:` field from `.build/session-plan.md` to the user:
 
 Update `.build/session-plan.md` if the user refines it.
 
-**3c. Invoke /goal**
+**3c. Run the per-item pipeline inline**
 
-`/goal` is a Stop-hook wrapper — after each turn, a fast evaluator checks the condition against the conversation transcript. It does not add orchestration; the agent runs whatever the condition tells it to run. So bundle the full sequence into the condition itself.
+Execute the following 10-step sequence directly in this session, as your own
+orchestration checklist. You are the orchestrator — run each step yourself, in
+order. Do not hand off to another command (`/goal` cannot be invoked by an
+orchestrating agent). Substitute `[Verify: contents]` from session-plan.md where
+referenced.
 
-Run `/goal` with this template (substitute `[Verify: contents]` from session-plan.md):
-
-```
-/goal Implement and ship the item described in .build/session-plan.md.
-Sequence:
 1. Read CLAUDE.md, docs/architecture.md, and docs/project-vision.md before any code changes.
 2. Run typecheck, lint, and tests to establish a clean baseline.
 3. Implement per the Approach in session-plan.md on branch feature/<item-slug>. Follow commit conventions from CLAUDE.md.
@@ -270,12 +269,14 @@ Sequence:
 
 Stop and return control to the user any time a step requires a decision you cannot resolve autonomously.
 
-Done when: [Verify: contents from session-plan.md]
+Done when: [Verify: contents from session-plan.md] — this is your self-checked completion criterion.
 
-Stop after 40 turns if the condition has not been met.
-```
+> Optional: for a long, unattended build you may instead paste this same numbered
+> sequence into the built-in `/goal` command yourself, to get a Stop-hook
+> completion guard that re-checks the done condition after each turn. This is a
+> manual fallback only — the orchestrator does not invoke `/goal`.
 
-When the goal clears (condition met or turn cap hit), proceed to 3d.
+When the item's pipeline completes (done condition met), proceed to 3d.
 
 **3d. Docs and stub check** (per Step 6 of `/next-step`).
 
@@ -309,7 +310,7 @@ Stop the loop and report to the user when:
 
 ### Context discipline
 
-After each `/goal` completes for an item, write completion status to BUILD_SUMMARY.md
+After each item's pipeline completes, write completion status to BUILD_SUMMARY.md
 (branch name, PR number, 3-sentence summary) and treat the tracking files as the
 source of truth. Re-read BUILD_PLAN.md and BUILD_SUMMARY.md from disk when needed
 rather than relying on accumulated context. The orchestrator does not need to

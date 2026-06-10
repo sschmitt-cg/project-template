@@ -87,7 +87,10 @@
       "Bash(whois *)",
       "Bash(dig *)",
       "WebSearch(*)",
-      "WebFetch(*)"
+      "WebFetch(*)",
+      "Read(/Users/scottschmitt/Documents/Scottsidian/Projects/**)",
+      "Write(/Users/scottschmitt/Documents/Scottsidian/Projects/**)",
+      "Edit(/Users/scottschmitt/Documents/Scottsidian/Projects/**)"
     ]
   },
   "hooks": {
