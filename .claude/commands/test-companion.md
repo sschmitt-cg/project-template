@@ -26,11 +26,43 @@ If `.build/TEST_TRACKER.md` exists:
    (Use the test title from the checkbox line. Today's date in `YYYY-MM-DD`.)
 5. If removing the block leaves an `### [Area]` heading with no remaining
    checkbox entries, leave the heading in place — it may be repopulated by a
-   later build. Phase 4c of `/auto-build` handles structural cleanup.
+   later build. The "Consolidate pending items" pre-step below handles structural
+   cleanup.
 6. Write the updated file to disk before proceeding.
 
 This sweep also applies whenever `/auto-build` or `/next-step` count pending
 tests during pre-flight; those commands reference this procedure.
+
+---
+
+## Pre-step 2 — Consolidate pending items
+
+Run this once, after the sweep and before loading items, so the session works from a
+de-duplicated, well-ordered list. `/auto-build` appends new tests and questions
+without sorting; consolidation happens here, just-in-time. Skip it if the Pending
+section of TEST_TRACKER.md and the Unresolved section of OPEN_QUESTIONS.md each have
+fewer than 2 entries — there is nothing to consolidate.
+
+Rewrite both files in place. For a very large backlog this may be delegated to a
+sub-agent; for the common small case, do it inline.
+
+**For OPEN_QUESTIONS.md (Unresolved section only):**
+- Merge duplicate or near-duplicate questions into a single entry, combining
+  defaults and revisit conditions
+- Remove any question already answered in the Resolved section
+- Do not touch the Resolved section
+
+**For TEST_TRACKER.md (Pending section only):**
+- Merge duplicate or overlapping tests into a single entry
+- Group remaining tests by app location/screen/user flow (e.g., "Login",
+  "Dashboard", "Settings"). Create a `### [Area]` heading for each group.
+- Within each group, order tests to minimize back-and-forth navigation — complete
+  everything testable in one location before moving to another
+- Across groups, order groups by natural user flow sequence (onboarding before
+  features, setup before use, happy path before edge cases)
+- Honor explicit dependency notes — if a test says "requires X first," preserve
+  that ordering even if it crosses group boundaries
+- Do not touch the Completed section
 
 ---
 
@@ -67,8 +99,8 @@ best-effort — questions are not area-tagged.)
 ## Step 3 — Manual testing session
 
 Work through the Pending section of TEST_TRACKER.md one test at a time, in the
-order they appear (the consolidation phase has already optimized this order —
-do not re-sort).
+order they appear (the Consolidate pending items pre-step has already optimized
+this order — do not re-sort).
 
 For each test:
 
@@ -151,8 +183,8 @@ Report:
   If the session is interrupted, files reflect the state up to the last completed item.
 - The Completed section of TEST_TRACKER.md and the Resolved section of
   OPEN_QUESTIONS.md are append-only — never remove or modify entries there.
-- Do not re-sort or regroup tests during a session. If consolidation is needed
-  after adding new tests, it happens during the auto-build wrap-up phase (Phase 4c),
-  not here.
+- Do not re-sort or regroup tests during a session. Consolidation happens once at
+  the start of this command (the "Consolidate pending items" pre-step), not
+  mid-session.
 - TEST_TRACKER.md checkbox conventions: `[ ]` pending, `[x]` passed, `[!]` failed
   (known failure awaiting a fix — still in Pending until resolved).

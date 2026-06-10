@@ -36,8 +36,9 @@ be addressed at the end of this build?"
 ### Prior build check
 
 If `.build/BUILD_PLAN.md` exists, offer to resume the previous build or start
-fresh. If resuming, skip to Phase 3 and continue from the first uncompleted item
-in BUILD_PLAN.md.
+fresh. If resuming, read the Items Completed section of `.build/BUILD_SUMMARY.md`
+to determine what is already done, then skip to Phase 3 and continue from the first
+item in BUILD_PLAN.md's Development Sequence that is not yet listed as completed.
 
 ---
 
@@ -86,6 +87,10 @@ Present in one message:
 - Recommended exclusions and why
 - Key decisions and the defaults to be used (one line each)
 - Prerequisites to run before the build starts
+- Firm-protected docs the build will update — BACKLOG.md item check-offs (plus any
+  emergent additions), and docs/project-vision.md or docs/architecture.md if a new
+  principle/constraint is anticipated — so confirming authorizes those edits (the
+  approval the firm-document-protection rule in CLAUDE.md requires)
 - Any blocking questions from 1c
 
 **Stop here once.** The user confirms, adjusts the sequence/exclusions/decisions,
@@ -217,13 +222,20 @@ this session as your own orchestration checklist, with these per-item adjustment
 - **Spec source:** implement from this item's entry in BUILD_PLAN.md (description,
   key files, and any relevant rows from the Key Decisions / Deferred Decisions
   sections) instead of from a session-plan file.
-- **Branch:** work on `feature/<item-slug>` for this item.
+- **Branch:** before implementing, create `feature/<item-slug>` from up-to-date dev
+  (branch mechanics are in /next-step Step 4). 3c leaves dev checked out and pulled
+  after the previous item; for the first item, ensure dev is current first.
 - **Done-condition:** use the standard condition — "PR is open, all CI checks pass,
   and the item behaves as described in BUILD_PLAN.md" — unless the item was flagged
   in Phase 1 as needing a custom one.
+- **Firm-doc edits:** BACKLOG.md check-offs and any project-vision.md or
+  architecture.md changes proceed under the Phase 1 approval; pause only for a
+  firm-doc change not anticipated there.
+- **Decisions:** record any decision made during this item's implementation (with
+  the option chosen) in the Key Decisions section of BUILD_SUMMARY.md.
 - **Open questions:** when one arises that cannot be resolved autonomously, append
   it to `.build/OPEN_QUESTIONS.md` (Unresolved section) with question, default used,
-  revisit condition, and today's date. (No separate questions file.)
+  revisit condition, and today's date.
 - **BACKLOG:** mark the item complete as part of step 5 of the pipeline.
 
 Stop and return control to the user any time a step requires a decision you cannot
@@ -236,7 +248,11 @@ resolve autonomously.
 
 When the item's pipeline completes (done condition met), proceed to 3b.
 
-**3b. Docs and stub check** (per Step 6 of `/next-step`).
+**3b. Stub-doc check.** Apply only the stub-check portion of `/next-step` Step 6:
+if a changed file needs `docs/user-guide.md` or `docs/admin-guide.md` but that file
+still has the `> **Template:**` stub marker, propose a dedicated docs task rather
+than populating it inline. The session-plan cleanup and Step-3 baseline-delta parts
+of that step do not apply here.
 
 **3c. Merge and continue.** Once CI passes:
 - Run `gh pr merge <number> --merge --delete-branch`
@@ -306,36 +322,11 @@ follow this format:
 ```
 
 Append the output to the Pending section of `.build/TEST_TRACKER.md` — do not
-replace existing entries.
+replace existing entries. Do not sort or de-duplicate here: consolidation now runs
+once at the start of `/test-companion` (its "Consolidate pending items" pre-step),
+just-in-time before the items are worked through, so the wrap-up only needs to append.
 
-### 4c. Consolidate tracking files
-
-Spawn a consolidation sub-agent. Give it:
-- Full contents of `.build/OPEN_QUESTIONS.md`
-- Full contents of `.build/TEST_TRACKER.md`
-- The list of items built in this build (from BUILD_SUMMARY.md Items Completed)
-
-The sub-agent rewrites both files in place:
-
-**For OPEN_QUESTIONS.md (Unresolved section only):**
-- Merge duplicate or near-duplicate questions into a single entry, combining
-  defaults and revisit conditions
-- Remove any question that was definitively answered by the work in this build
-- Do not touch the Resolved section
-
-**For TEST_TRACKER.md (Pending section only):**
-- Merge duplicate or overlapping tests into a single entry
-- Group remaining tests by app location/screen/user flow (e.g., "Login",
-  "Dashboard", "Settings"). Create a `### [Area]` heading for each group.
-- Within each group, order tests to minimize back-and-forth navigation — complete
-  everything testable in one location before moving to another
-- Across groups, order groups by natural user flow sequence (onboarding before
-  features, setup before use, happy path before edge cases)
-- Honor explicit dependency notes — if a test says "requires X first," preserve
-  that ordering even if it crosses group boundaries
-- Do not touch the Completed section
-
-### 4d. Complete BUILD_SUMMARY.md
+### 4c. Complete BUILD_SUMMARY.md
 
 ```markdown
 # Build Summary
@@ -358,7 +349,7 @@ See `.build/OPEN_QUESTIONS.md` — [N] unresolved items
 See `.build/TEST_TRACKER.md` — [N] pending tests
 ```
 
-### 4e. Final report
+### 4d. Final report
 
 Report to the user:
 - Build complete (or partial, with reason for stopping)
