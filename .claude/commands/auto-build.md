@@ -36,8 +36,9 @@ be addressed at the end of this build?"
 ### Prior build check
 
 If `.build/BUILD_PLAN.md` exists, offer to resume the previous build or start
-fresh. If resuming, skip to Phase 3 and continue from the first uncompleted item
-in BUILD_PLAN.md.
+fresh. If resuming, read the Items Completed section of `.build/BUILD_SUMMARY.md`
+to determine what is already done, then skip to Phase 3 and continue from the first
+item in BUILD_PLAN.md's Development Sequence that is not yet listed as completed.
 
 ---
 
@@ -49,63 +50,54 @@ Read in full: `BACKLOG.md`, `docs/project-vision.md`, `docs/architecture.md`.
 Run `gh pr list --state open` and `gh issue list --state open` to check for
 in-flight work.
 
-### 1b. Present scope options
+### 1b. Select build scope
 
-List each backlog phase with a one-line summary of its contents. Ask the user
-how far they want to build — they may choose a phase boundary (e.g., "through
-Phase 1"), specific items by number, or the full backlog. Also offer a custom
-option to exclude individual items.
+List each backlog phase with a one-line summary of its contents. Ask the user how
+far they want to build — a phase boundary (e.g., "through Phase 1"), specific items
+by number, or the full backlog.
 
-For the selected scope, identify items that appear underspecified or have
-implicit prerequisites not yet in the backlog. Flag these with a brief note.
+This scope choice is the one required input before planning. Get it, then build the
+plan without further interruption.
 
-### 1c. Recommend exclusions
+### 1c. Build the plan (internal — do not stop between these)
 
-Review each item in scope. If an item:
-- Requires infrastructure or a dependency not established earlier in the sequence
-- Has scope that would likely require revisiting other items
-- Is marked as a stretch goal or clearly post-launch
+For the selected scope, work out the full plan before presenting anything:
 
-— recommend excluding it and explain why. Present the recommended exclusion list
-and ask the user to confirm or override each item.
+- **Sequence:** order items dependency-clean (infrastructure before features, data
+  models before UI, auth before protected routes).
+- **Exclusions:** flag any item to drop because it needs infrastructure or a
+  dependency not established earlier, would likely force revisiting other items, or
+  is a stretch/post-launch goal — one-line reason each.
+- **Decisions & defaults:** for each decision an item needs, record the reasonable
+  default you will use if the user does not override it.
+- **Prerequisites:** list env vars, third-party services, or local setup that must
+  happen before the first item runs.
+- **Blocking questions only:** list only questions that genuinely block
+  implementation and have no safe default. Everything else uses its default — do
+  not ask.
 
-### 1d. Clarifying questions
+Self-check the result: is the sequence dependency-clean, does every item have
+enough spec to proceed on a default, and are all prerequisites identified? Resolve
+any gaps before presenting.
 
-Generate the full list of questions needed to implement the selected scope
-without interruption. For each question, note what decision it affects and what
-the reasonable default is if the user does not specify.
+### 1d. Confirm the plan
 
-Present all questions at once. Wait for answers before proceeding.
+Present in one message:
+- The numbered development sequence
+- Recommended exclusions and why
+- Key decisions and the defaults to be used (one line each)
+- Prerequisites to run before the build starts
+- Firm-protected docs the build will update — BACKLOG.md item check-offs (plus any
+  emergent additions), and docs/project-vision.md or docs/architecture.md if a new
+  principle/constraint is anticipated — so confirming authorizes those edits (the
+  approval the firm-document-protection rule in CLAUDE.md requires)
+- Any blocking questions from 1c
 
-### 1e. Self-check before confirming
+**Stop here once.** The user confirms, adjusts the sequence/exclusions/decisions,
+and answers any blocking questions in a single pass. Re-confirm only if their
+answers materially change the plan.
 
-Before presenting the final plan, check the following against the answers and
-selected scope:
-
-- Is the development sequence dependency-clean? (infrastructure before features,
-  data models before UI, auth before protected routes)
-- Does every item have enough spec to implement with a reasonable default — i.e.,
-  no item requires a cross-cutting design decision to proceed?
-- Are there any environment variables, third-party services, or local setup steps
-  that must happen before the first item can run?
-
-If gaps are found, resolve them via additional questions before proceeding. If
-clean, continue.
-
-### 1f. Confirm with user
-
-Present:
-- The final numbered development sequence
-- Key decisions made (one line each)
-- Items excluded and why
-- Prerequisites to run before the build starts (env setup, installs, etc.)
-
-**Stop here and wait for explicit confirmation before proceeding.**
-
-The user may adjust the sequence, swap items in or out, or override any decision.
-Incorporate changes and confirm the final plan.
-
-### 1g. Write `.build/BUILD_PLAN.md`
+### 1e. Write `.build/BUILD_PLAN.md`
 
 Create the `.build/` directory if it does not exist.
 
@@ -116,7 +108,7 @@ Create the `.build/` directory if it does not exist.
 [Selected phase(s) or item list]
 
 ## Development Sequence
-1. [Item name] — [one-line description]
+1. [Item name] — [one-line description; note key files or approach if not obvious]
 2. ...
 
 ## Key Decisions
@@ -151,21 +143,6 @@ commands are scoped to the project.
 
 **Session artifacts** — create fresh each build:
 
-Create `.build/BUILD_QUESTIONS.md`:
-
-```markdown
-# Build Questions
-
-## Decisions Made
-
-[Populated as the build proceeds — one entry per decision, in sequence.]
-
-## Open Questions
-
-[One-line pointers to questions deferred during the build. Full entries are
-written to .build/OPEN_QUESTIONS.md in real time as each question arises.]
-```
-
 Create `.build/BUILD_SUMMARY.md`:
 
 ```markdown
@@ -174,11 +151,14 @@ Create `.build/BUILD_SUMMARY.md`:
 ## Status: In Progress
 
 ## Items Completed
-[Populated as each item merges.]
+[Populated as each item merges. Remaining items = BUILD_PLAN.md sequence minus these.]
 
-## Items Remaining
-[Full sequence from BUILD_PLAN.md — items removed as they complete.]
+## Key Decisions
+[Populated as the build proceeds — one entry per decision made, in sequence.]
 ```
+
+Open questions are written straight to `.build/OPEN_QUESTIONS.md` in real time (see
+below) — there is no separate questions file.
 
 **Persistent tracking files** — create only if absent:
 
@@ -227,59 +207,55 @@ For each item in the development sequence from BUILD_PLAN.md:
 
 ### Per-item pipeline
 
-**3a. Write `.build/session-plan.md`** for this item:
+There is no per-item session-plan file and no per-item confirmation gate — the
+whole plan, including each item's decisions and done-condition, was confirmed once
+in Phase 1d. The item's entry in BUILD_PLAN.md is its spec.
 
-```
-Task: [item name and one-sentence description]
-Approach: [2–3 sentences on implementation strategy for this specific item]
-Key files: [files most relevant to this item]
-Decisions: [any decisions from BUILD_PLAN.md relevant to this item]
-Open questions: [none, or any item-specific questions to resolve]
-Verify: [a concrete, observable condition that is true when this task is complete — e.g., "PR is open, all CI checks pass, and the feature behaves as described in the task"]
-```
+**3a. Run the per-item pipeline inline**
 
-**3b. Confirm the goal condition**
+Run the same 10-step inline pipeline defined in `/next-step` Step 5b, directly in
+this session as your own orchestration checklist, with these per-item adjustments:
 
-Present the `Verify:` field from `.build/session-plan.md` to the user:
+- **Spec source:** implement from this item's entry in BUILD_PLAN.md (description,
+  key files, and any relevant rows from the Key Decisions / Deferred Decisions
+  sections) instead of from a session-plan file.
+- **Branch:** before implementing, create `feature/<item-slug>` from up-to-date dev
+  (branch mechanics are in /next-step Step 4). 3c leaves dev checked out and pulled
+  after the previous item; for the first item, ensure dev is current first.
+- **Done-condition:** use the standard condition — "PR is open, all CI checks pass,
+  and the item behaves as described in BUILD_PLAN.md" — unless the item was flagged
+  in Phase 1 as needing a custom one.
+- **Firm-doc edits:** BACKLOG.md check-offs and any project-vision.md or
+  architecture.md changes proceed under the Phase 1 approval; pause only for a
+  firm-doc change not anticipated there.
+- **Decisions:** record any decision made during this item's implementation (with
+  the option chosen) in the Key Decisions section of BUILD_SUMMARY.md.
+- **Open questions:** when one arises that cannot be resolved autonomously, append
+  it to `.build/OPEN_QUESTIONS.md` (Unresolved section) with question, default used,
+  revisit condition, and today's date.
+- **BACKLOG:** mark the item complete as part of step 5 of the pipeline.
 
-> "Here's the goal condition I'll use to know when this task is done:
-> [Verify: contents]
-> Does this correctly capture done? Adjust if needed."
+Where the referenced pipeline says "the task confirmed in Step 3", "the approval
+given in Step 3", or "session-plan.md", substitute the deltas above (this item's
+BUILD_PLAN.md entry, the Phase 1 approval, and the standard done-condition).
 
-Update `.build/session-plan.md` if the user refines it.
+Stop and return control to the user any time a step requires a decision you cannot
+resolve autonomously.
 
-**3c. Invoke /goal**
+> Optional: for a long, unattended build you may instead paste the pipeline
+> sequence into the built-in `/goal` command yourself, to get a Stop-hook
+> completion guard that re-checks the done condition after each turn. This is a
+> manual fallback only — the orchestrator does not invoke `/goal`.
 
-`/goal` is a Stop-hook wrapper — after each turn, a fast evaluator checks the condition against the conversation transcript. It does not add orchestration; the agent runs whatever the condition tells it to run. So bundle the full sequence into the condition itself.
+When the item's pipeline completes (done condition met), proceed to 3b.
 
-Run `/goal` with this template (substitute `[Verify: contents]` from session-plan.md):
+**3b. Stub-doc check.** Apply only the stub-check portion of `/next-step` Step 6:
+if a changed file needs `docs/user-guide.md` or `docs/admin-guide.md` but that file
+still has the `> **Template:**` stub marker, propose a dedicated docs task rather
+than populating it inline. The session-plan cleanup and Step-3 baseline-delta parts
+of that step do not apply here.
 
-```
-/goal Implement and ship the item described in .build/session-plan.md.
-Sequence:
-1. Read CLAUDE.md, docs/architecture.md, and docs/project-vision.md before any code changes.
-2. Run typecheck, lint, and tests to establish a clean baseline.
-3. Implement per the Approach in session-plan.md on branch feature/<item-slug>. Follow commit conventions from CLAUDE.md.
-4. Re-run typecheck, lint, and tests; fix any failures introduced.
-5. Update BACKLOG.md to mark the item complete; if user-visible behavior changed and docs/user-guide.md is populated (no "> **Template:**" marker), update it; same for docs/admin-guide.md on config/env/deploy changes; README.md if commands or structure changed.
-6. If any open question arises that cannot be resolved autonomously, append it to .build/OPEN_QUESTIONS.md (Unresolved section) with question, default used, revisit condition, and today's date; also log a one-line pointer in .build/BUILD_QUESTIONS.md Open Questions section.
-7. Spawn a review sub-agent: reads docs/architecture.md and every changed file, checks for violations of CLAUDE.md and architecture.md constraints. Fix autonomously for clear rule violations or mechanical style; stop only for genuine design decisions. Up to 5 rounds.
-8. Spawn a security sub-agent: checks every changed file for exposed secrets, injection (SQL, shell, XSS, path traversal), sensitive data in logs, insecure defaults (TLS, CORS, auth), known CVEs (npm audit / pip-audit). Fix autonomously where unambiguous; stop and ask otherwise.
-9. Open the PR: `gh pr create --base dev`, using the three-section test plan format from CLAUDE.md (CI / Automated / Manual).
-10. Monitor CI with `gh pr checks <number>`; fix mechanical failures (type, lint, broken import, failing test from these changes) autonomously; stop only when root cause needs a design decision. Up to 5 rounds.
-
-Stop and return control to the user any time a step requires a decision you cannot resolve autonomously.
-
-Done when: [Verify: contents from session-plan.md]
-
-Stop after 40 turns if the condition has not been met.
-```
-
-When the goal clears (condition met or turn cap hit), proceed to 3d.
-
-**3d. Docs and stub check** (per Step 6 of `/next-step`).
-
-**3e. Merge and continue.** Once CI passes:
+**3c. Merge and continue.** Once CI passes:
 - Run `gh pr merge <number> --merge --delete-branch`
 - Run `git checkout dev`
 - Run `git pull`
@@ -299,9 +275,9 @@ Stop the loop and report to the user when:
 - The build runner context approaches its limit (see Notes)
 
 **Log and continue** (do not stop) when:
-- An open question arises that has a reasonable default answer — the sub-agent
-  handles this per instruction 6 above; the orchestrator does not need to act,
-  just continue
+- An open question arises that has a reasonable default answer — record it in
+  `.build/OPEN_QUESTIONS.md` per the per-item adjustments above and continue; the
+  orchestrator does not need to act on it
 - An item requires a minor refactor to a previously completed item that does
   not affect unrelated code — fold it into the current PR
 - CI fails with a mechanical fix (type error, lint, broken import) — fix
@@ -309,7 +285,7 @@ Stop the loop and report to the user when:
 
 ### Context discipline
 
-After each `/goal` completes for an item, write completion status to BUILD_SUMMARY.md
+After each item's pipeline completes, write completion status to BUILD_SUMMARY.md
 (branch name, PR number, 3-sentence summary) and treat the tracking files as the
 source of truth. Re-read BUILD_PLAN.md and BUILD_SUMMARY.md from disk when needed
 rather than relying on accumulated context. The orchestrator does not need to
@@ -322,15 +298,8 @@ carry forward implementation detail between items.
 ### 4a. Finalize open questions
 
 Open questions were written to `.build/OPEN_QUESTIONS.md` in real time during
-Phase 3, so no migration is needed. Close out BUILD_QUESTIONS.md by replacing
-the "Open Questions" section body with:
-`[All items written to .build/OPEN_QUESTIONS.md in real time — see that file.]`
-
-As a defensive check: read BUILD_QUESTIONS.md's Open Questions section. Pointer
-entries are a single line (e.g., "Q: [title] → see OPEN_QUESTIONS.md"). If any
-entry spans multiple lines — indicating it's a full question that wasn't written
-to OPEN_QUESTIONS.md in real time — and the same question is not already present
-in OPEN_QUESTIONS.md's Unresolved section, migrate it now with today's date.
+Phase 3, so no migration is needed. As a defensive check, scan the build for any
+deferred decision that was not recorded there and append it now with today's date.
 
 ### 4b. Spawn a test-plan sub-agent
 
@@ -354,36 +323,11 @@ follow this format:
 ```
 
 Append the output to the Pending section of `.build/TEST_TRACKER.md` — do not
-replace existing entries.
+replace existing entries. Do not sort or de-duplicate here: consolidation now runs
+once at the start of `/test-companion` (its "Consolidate pending items" pre-step),
+just-in-time before the items are worked through, so the wrap-up only needs to append.
 
-### 4c. Consolidate tracking files
-
-Spawn a consolidation sub-agent. Give it:
-- Full contents of `.build/OPEN_QUESTIONS.md`
-- Full contents of `.build/TEST_TRACKER.md`
-- The list of items built in this build (from BUILD_SUMMARY.md Items Completed)
-
-The sub-agent rewrites both files in place:
-
-**For OPEN_QUESTIONS.md (Unresolved section only):**
-- Merge duplicate or near-duplicate questions into a single entry, combining
-  defaults and revisit conditions
-- Remove any question that was definitively answered by the work in this build
-- Do not touch the Resolved section
-
-**For TEST_TRACKER.md (Pending section only):**
-- Merge duplicate or overlapping tests into a single entry
-- Group remaining tests by app location/screen/user flow (e.g., "Login",
-  "Dashboard", "Settings"). Create a `### [Area]` heading for each group.
-- Within each group, order tests to minimize back-and-forth navigation — complete
-  everything testable in one location before moving to another
-- Across groups, order groups by natural user flow sequence (onboarding before
-  features, setup before use, happy path before edge cases)
-- Honor explicit dependency notes — if a test says "requires X first," preserve
-  that ordering even if it crosses group boundaries
-- Do not touch the Completed section
-
-### 4d. Complete BUILD_SUMMARY.md
+### 4c. Complete BUILD_SUMMARY.md
 
 ```markdown
 # Build Summary
@@ -397,7 +341,7 @@ The sub-agent rewrites both files in place:
 [From BUILD_PLAN.md exclusions]
 
 ## Key Decisions
-[From BUILD_QUESTIONS.md — decisions made]
+[From the Key Decisions section of BUILD_SUMMARY.md, accumulated during the build]
 
 ## Open Questions
 See `.build/OPEN_QUESTIONS.md` — [N] unresolved items
@@ -406,7 +350,7 @@ See `.build/OPEN_QUESTIONS.md` — [N] unresolved items
 See `.build/TEST_TRACKER.md` — [N] pending tests
 ```
 
-### 4e. Final report
+### 4d. Final report
 
 Report to the user:
 - Build complete (or partial, with reason for stopping)
@@ -427,5 +371,5 @@ Report to the user:
 - **`.build/` is gitignored.** These files are session artifacts, not project
   history. Add `.build/` to `.gitignore` if not already present.
 - **Persistent files survive builds.** OPEN_QUESTIONS.md and TEST_TRACKER.md
-  accumulate across builds. BUILD_PLAN.md, BUILD_QUESTIONS.md, BUILD_SUMMARY.md,
-  and session-plan.md are per-build artifacts and may be overwritten.
+  accumulate across builds. BUILD_PLAN.md and BUILD_SUMMARY.md are per-build
+  artifacts and may be overwritten.
