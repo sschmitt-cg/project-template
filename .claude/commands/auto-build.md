@@ -239,6 +239,19 @@ Where the referenced pipeline says "the task confirmed in Step 3", "the approval
 given in Step 3", or "session-plan.md", substitute the deltas above (this item's
 BUILD_PLAN.md entry, the Phase 1 approval, and the standard done-condition).
 
+The inherited pipeline runs these per item, before the item's PR merges — do not
+skip them:
+- **Code review** (pipeline step 7): a review sub-agent checks the item's changed
+  files against CLAUDE.md and architecture.md constraints.
+- **Security review** (pipeline step 8): a security sub-agent checks the item's
+  changed files for exposed secrets, injection, sensitive data exposure, insecure
+  defaults, and known CVEs.
+- **Guide updates** (pipeline step 6): user-guide.md / admin-guide.md / README are
+  updated if populated and the item changed the behavior they document.
+
+These are per-item, unit-level passes. A whole-build integration review and
+security sweep that catches cross-item interactions runs once at the end (Phase 4a).
+
 Stop and return control to the user any time a step requires a decision you cannot
 resolve autonomously.
 
@@ -295,13 +308,44 @@ carry forward implementation detail between items.
 
 ## Phase 4 — Wrap-up
 
-### 4a. Finalize open questions
+### 4a. Whole-build integration review and security sweep
+
+Each item was already reviewed and security-checked in isolation during its
+per-item pipeline (Phase 3 steps 6–8). This step is **not** a re-review of every
+file — it is a holistic pass scoped only to what per-item review cannot see:
+interactions between items.
+
+Spawn two sub-agents, each given the full item list from BUILD_SUMMARY.md and the
+complete list of changed files across the build:
+
+- **Integration review sub-agent:** look for cross-item problems only — mismatched
+  assumptions at the seams between items, shared state or schema touched by more
+  than one item, an interface changed by one item and consumed by another, ordering
+  or lifecycle issues that only appear once the items coexist, and drift from
+  architecture.md introduced by the build as a whole.
+- **Integration security sub-agent:** look for whole-build security concerns —
+  an auth/permission item interacting with a new data-exposing item, a sensitive
+  flow assembled across items where no single item looked dangerous, and dependency
+  or CVE drift across the full set of changes (`npm audit` / `pip-audit` once over
+  the merged result).
+
+Because all items are already merged to dev, findings here do **not** block. For
+each confirmed issue, open a single follow-up fix PR (`feature/<name>` → dev) and
+note it in the final report. If a finding needs a design decision, stop and ask the
+user rather than guessing. Record any new deferred decision in
+`.build/OPEN_QUESTIONS.md` so the count in 4b stays accurate.
+
+Also do a **docs coherence read**: if user-guide.md / admin-guide.md are populated,
+read each end-to-end and fix anything that reads as a series of disjoint per-item
+patches rather than one coherent guide. Fold these edits into the follow-up PR.
+
+### 4b. Finalize open questions
 
 Open questions were written to `.build/OPEN_QUESTIONS.md` in real time during
 Phase 3, so no migration is needed. As a defensive check, scan the build for any
 deferred decision that was not recorded there and append it now with today's date.
 
-### 4b. Spawn a test-plan sub-agent
+### 4c. Spawn a test-plan sub-agent
 
 Give it:
 - The full item list from BUILD_SUMMARY.md
@@ -327,7 +371,7 @@ replace existing entries. Do not sort or de-duplicate here: consolidation now ru
 once at the start of `/test-companion` (its "Consolidate pending items" pre-step),
 just-in-time before the items are worked through, so the wrap-up only needs to append.
 
-### 4c. Complete BUILD_SUMMARY.md
+### 4d. Complete BUILD_SUMMARY.md
 
 ```markdown
 # Build Summary
@@ -350,11 +394,12 @@ See `.build/OPEN_QUESTIONS.md` — [N] unresolved items
 See `.build/TEST_TRACKER.md` — [N] pending tests
 ```
 
-### 4d. Final report
+### 4e. Final report
 
 Report to the user:
 - Build complete (or partial, with reason for stopping)
 - PR list with merge status
+- Any follow-up fix PR opened by the Phase 4a integration review/security sweep
 - Link to `.build/BUILD_SUMMARY.md`
 - Count of open questions and pending tests, with a prompt to run `/test-companion`
 
